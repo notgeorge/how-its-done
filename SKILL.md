@@ -171,16 +171,27 @@ what George types; the emoji is what he scans for.
 
 ### Answers — AW#
 
-When George asks something inside a thread, the answer goes in an **Answers** table, not buried in
-prose:
+When George asks something inside a thread, answer it in two parts (ruled r38).
+
+**1. A single-row table carrying the answer in ONE sentence:**
 
 | AW# | T# | Answer |
 | --- | --- | --- |
-| AW1 | T2 | … |
+| AW2 | T9 🔍 | No — the declaration is mandatory even when the key is absent, and nothing is derived today. |
+
+**2. The explanation as prose directly below that table** — paragraphs, headings and lists as the
+material needs, with blank lines between blocks so it is readable. A long cell in a table is not
+readable in a terminal; a paragraph is. The table is the verdict and the durable identifier, the
+prose is the reasoning.
+
+One table per answer. Two thread questions in a message means two single-row tables, each followed
+by its own prose, never one table with two rows.
 
 - `AW#` identifiers are stable and never reused, so he can refer back to an answer the way he refers
   to a work row.
-- The answer is written in full — this is explanation, not a status line, so the same
+- The sentence in the table must be able to stand alone. If the one-sentence version needs a
+  qualifier to be true, the qualifier goes in the sentence — not in the prose below it.
+- The explanation is written in full: this is where the reasoning lives, so the same
   spend-the-words rule as `What I did` applies.
 - Answers **drop off** the round after they are given, like answered questions; the register file
   keeps them.
