@@ -76,8 +76,12 @@ decision he did not need to make.
 | --- | --- |
 | ID | `Q7 · r14` — identifier and the round it was raised; the age is the signal |
 | Thread | The thread emoji (see Threads below) |
-| Question | 4-8 word title, then what you need decided |
+| `?` | The question's title, 4-8 words. Plain text — no bold |
+| `??` | The question itself: what you need decided, in full sentences |
 | Why it matters | What it blocks, or what goes wrong if it is decided the other way |
+
+The title and the question are separate columns (George, r34) so the titles form a scannable left
+edge instead of being buried at the head of a paragraph.
 
 **Answered questions drop off.** Once he rules, the row disappears from the next response; the
 ruling is recorded in the register file, not re-displayed. Unanswered questions **carry forward
@@ -93,7 +97,7 @@ What **George** does, never what you are doing.
 | --- | --- |
 | ID | `A3 · r7` — the identifier and the round it first appeared, so its age rides along without a column |
 | Thread | The thread emoji (see Threads below) |
-| Action | 4-8 word title, then the concrete act: approve this PR, run this command, reply to this person |
+| Action | 4-8 word title, then the concrete act: approve this PR, run this command, reply to this person. Plain text — no bold |
 | Why | **Several sentences**. What it unblocks, what is waiting on it, what happens if it keeps waiting, and any context he needs to decide. Not a phrase. |
 | Recommendation | Your actual opinion, stated plainly. Required — SBAR's discipline: the recommendation is a named field, not an optional flourish. |
 
@@ -119,6 +123,12 @@ and **when it should fire**, because that is the number that tells him how long 
 branch awaiting cleanup. Those are not waits and reading them as "the session is busy" is exactly the
 wrong signal. They belong in an Action (cleanup he approves) or a Work row (cleanup already done).
 The first version of this section listed them and was wrong for that reason.
+
+## No bold inside register cells
+
+Cell text is plain (George, r34): bold inside Question and Action cells is hard to look at in the
+terminal, where the renderer already separates rows. Bold belongs to the Work-done summary line and
+to prose above the register, not to the grid. Backticks for paths, commands and identifiers are fine.
 
 ## Threads — the emoji column
 
