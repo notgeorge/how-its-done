@@ -164,6 +164,25 @@ retiring one number with a description saying where it went, never by reusing it
 - A thread stays in the table while it is live. When it is finished, say so in its description and
   drop it the following round — the same rule as an answered question.
 
+### Closing a thread
+
+When George asks to close one (`close T1`, `close T3 and T4 yourself`), give a **status box** before
+it drops off: everything still outstanding on that thread — an unmerged PR, an uncommitted diff, a
+follow-up nobody has done — each with your recommendation. A thread with nothing outstanding says so
+plainly ("Nothing outstanding — clean close") rather than the box being silently absent, because
+absence reads as "I forgot to check," not "there was nothing to report."
+
+One small table per closed thread, right where the closure is reported:
+
+| Item | Recommendation |
+| --- | --- |
+| PR #48 — open, green, unmerged | Merge when ready |
+| `tap_viz/models.py` etc. — uncommitted in this worktree | Commit whenever you want it |
+
+Then the thread drops from the Threads table as usual. The box is what makes "closed" mean something
+— without it, closed and finished look identical even when a PR is still sitting open or a diff is
+still sitting uncommitted, and that gap is exactly what this box exists to close.
+
 ### Tagging rows
 
 Every register row's thread column carries `T# 🧵` (e.g. `T4 🔌`), not the bare emoji. The number is
