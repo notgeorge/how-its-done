@@ -132,10 +132,24 @@ to prose above the register, not to the grid. Backticks for paths, commands and 
 
 ## Threads — named lines of thought
 
-A **thread** is a line of thought that outlives one exchange. George opens or references one by
-writing `>T#` in his message — the `>` is a needle going through the conversation — so he can say
-"`>T1` let's build out threading" and, in the same message, "`>T2` explain the danger in W56" without
-the two getting tangled.
+A **thread** is a line of thought that outlives one exchange.
+
+**You detect and number threads, not George** (ruled r36). Read his message, notice when he has
+opened a new line of thought, and give it a number, an emoji, a title and a description in the
+Threads table. He types nothing. `>T#` remains available when he wants to point at a specific
+thread — an existing number references it — but it is a convenience, never a requirement, and its
+absence never means "no thread".
+
+**The bar for opening one:** a thread is something that will come BACK — a line of work, a standing
+question, a system being built. A one-off question answered in the same breath is not a thread; it
+is an Answer row on an existing thread, or just prose. Over-threading is the failure to design
+against: a table of twenty numbered lines, most of them dead, is noise wearing a schema. If you are
+unsure, attach the row to the nearest existing thread and let a second occurrence prove it deserves
+its own number.
+
+**When you get it wrong** — split something that was one thread, or merge two that were not — George
+corrects it by ID. Renumbering is forbidden (IDs are permanent), so a wrong split is fixed by
+retiring one number with a description saying where it went, never by reusing it.
 
 **The Threads table is authoritative and renders every round**, before the other tables:
 
