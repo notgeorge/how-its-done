@@ -130,20 +130,51 @@ Cell text is plain (George, r34): bold inside Question and Action cells is hard 
 terminal, where the renderer already separates rows. Bold belongs to the Work-done summary line and
 to prose above the register, not to the grid. Backticks for paths, commands and identifiers are fine.
 
-## Threads — the emoji column
+## Threads — named lines of thought
 
-Every row carries an emoji in a narrow column right after the ID. It is **not decoration**: it is a
-thread marker. Work, questions and actions that belong to the same line of work share one emoji, so
-George can trace a thread across all three tables without reading the titles.
+A **thread** is a line of thought that outlives one exchange. George opens or references one by
+writing `>T#` in his message — the `>` is a needle going through the conversation — so he can say
+"`>T1` let's build out threading" and, in the same message, "`>T2` explain the danger in W56" without
+the two getting tangled.
 
-Pick something that actually fits the thread (🏛️ for architecture work, 🎨 for colour and theming,
-🔌 for hooks and wiring, ⚖️ for a rule that contradicts practice). Record the assignment in the
-register file's Threads section and **reuse it for the life of the thread** — a thread whose emoji
-changes between rounds is worse than no emoji, because it silently breaks the one thing the column
-is for. A genuinely new thread gets a new glyph; when in doubt, inherit rather than invent.
+**The Threads table is authoritative and renders every round**, before the other tables:
 
-The column costs almost no width, which is what makes it affordable under the four-column rule —
-count it as half a column, not a whole one.
+| T# | 🧵 | Title | Description |
+| --- | --- | --- | --- |
+| T1 | 📐 | Response format | The register contract itself: shape, columns, rendering, this skill |
+
+- The number and the emoji are **assigned once and never reused**, exactly like a row ID. The emoji
+  is the same glyph the register rows carry, so a reader can trace a thread either way.
+- A `>T#` that already exists **references** that thread. A `>T#` that does not exist **opens** one:
+  give it a title, a description and the next free emoji.
+- A thread stays in the table while it is live. When it is finished, say so in its description and
+  drop it the following round — the same rule as an answered question.
+
+### Tagging rows
+
+Every register row's thread column carries `T# 🧵` (e.g. `T4 🔌`), not the bare emoji. The number is
+what George types; the emoji is what he scans for.
+
+### Answers — AW#
+
+When George asks something inside a thread, the answer goes in an **Answers** table, not buried in
+prose:
+
+| AW# | T# | Answer |
+| --- | --- | --- |
+| AW1 | T2 | … |
+
+- `AW#` identifiers are stable and never reused, so he can refer back to an answer the way he refers
+  to a work row.
+- The answer is written in full — this is explanation, not a status line, so the same
+  spend-the-words rule as `What I did` applies.
+- Answers **drop off** the round after they are given, like answered questions; the register file
+  keeps them.
+- The table is **omitted entirely** when no thread question was asked. Never invent one.
+
+Order with the rest of the register: **Threads → Answers → Work done → Open questions → Actions →
+Background.** Threads and answers come first because they are what he asked about; work and actions
+are what happened around them.
 
 ## Width — these are terminal tables
 
