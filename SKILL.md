@@ -179,7 +179,9 @@ What **George** does, never what you are doing.
 | Thread | The thread emoji (see Threads below) |
 | Action | 4-8 word title, then the concrete act: approve this PR, run this command, reply to this person. Plain text — no bold |
 | Why | **Several sentences**. What it unblocks, what is waiting on it, what happens if it keeps waiting, and any context he needs to decide. Not a phrase. |
-| Recommendation | Your actual opinion, stated plainly. Required — SBAR's discipline: the recommendation is a named field, not an optional flourish. |
+| Recommendation | Your actual opinion **and the reason for it**, stated plainly — enough that he can disagree with the reasoning, not just the verdict. "Merge it" is a verdict; "Merge it — the spec change is the consequential half and it's already been through four review rounds" is a recommendation. Required — SBAR's discipline: the recommendation is a named field, not an optional flourish. |
+
+**Terseness creeps in over a long session, and the Actions table is where it shows first** (r41, George: "you're now killing me with conciseness"). The Work-done rows tend to stay rich because they are narrating something that just happened; Actions rows decay into fragments — "Own session", "Cheapest win" — because by then the context feels obvious *to you*. It is not obvious to him, and it is much less obvious to him next week. A cell that only makes sense if you already sat through the session is a cell that failed. When a row repeats across rounds, carrying it forward verbatim is fine — shrinking it each round is the drift.
 
 Actions persist until done or withdrawn. An action open for many rounds is visible as one aging row
 rather than six identical asks — the failure this format exists to fix.
