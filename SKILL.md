@@ -177,8 +177,12 @@ two"). They answer different questions and he reads them differently: Why is the
 checks against what he already knows; Recommendation is your opinion, which he overrules or accepts.
 Fused, the opinion hides inside the description of the situation and he cannot see where the facts
 stop and the advice starts — which is the one thing this table exists to keep visible. The fusion
-creeps in for the same reason terseness does, to save width, and costs the same thing. Same rule for
-Work done: Evidence is its own column, never folded into the description.
+creeps in for the same reason terseness does, to save width, and costs the same thing.
+
+This does NOT generalise to Work done, which goes the other way: r19 ruled Evidence *into* the
+`What I did` cell, because four columns of long prose was too wide and evidence reads better as the
+closing line of the thing it evidences. Actions splits because Why and Recommendation are different
+kinds of claim; Work done merges because evidence is the same claim's proof.
 
 | Column | Contains |
 | --- | --- |
