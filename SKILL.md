@@ -25,8 +25,11 @@ question costs one round.
 ## Render order
 
 Prose answer, then **Targets → Threads → Work done → Open questions → Actions → Background**, in
-that order every time. Background sits last, under Actions (George, r30): it is status, not
-something he acts on, so it must never push his to-do list further down the screen.
+that order every time. **Targets renders first and every round while any Target is active — not
+only on the round it was stated, not only when the reply happens to be about it** (r40: dropped
+silently the round after intake, precisely the failure the table exists to catch). Background sits
+last, under Actions (George, r30): it is status, not something he acts on, so it must never push
+his to-do list further down the screen.
 
 ## Targets — what the session is aiming at (ruled r39)
 
@@ -55,7 +58,10 @@ in a shape you would be willing to be held to.
 — rather than silently proceeding without one. Ongoing work continues normally; this is a nudge,
 not a gate.
 
-**Table shape**, above Threads, rendered every round while any Target is active:
+**Table shape**, above Threads, rendered EVERY ROUND while any Target is active — including a
+round that is entirely about something else, a trivial round, a round that only answers a Thread
+question. The table costs three lines and answers "are we still aimed at the thing" without George
+having to ask. Omit it only once no Target is active at all.
 
 | X# | 🙂 | Target | Hit when | Status |
 | --- | --- | --- | --- | --- |
@@ -343,3 +349,7 @@ Each of these was observed, not imagined:
   over time, not a status line — spend the words.
 - **Layout fiddling.** Spacer rows, per-entry tables, HTML padding. Tried and rejected at r20: each
   one trades a scannable grid for reassembly work. One table per section, full stop.
+- **The Targets table dropped after intake.** Rendered the round a Target was accepted, then
+  silently gone the next round because that round's content wasn't "about" it (r40, caught by
+  George the same session the mechanism was built). This is the exact failure the table exists to
+  surface — it must render every round a Target is active, full stop, not just when convenient.
