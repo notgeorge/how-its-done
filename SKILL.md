@@ -171,7 +171,14 @@ unchanged, with their original ID and Raised value**.
 
 What **George** does, never what you are doing.
 
-**Four columns, never more** (see Width below):
+**Five columns, never more** (see Width below). **Why and Recommendation are SEPARATE columns —
+never fused into one cell** (r42, George: "you're now merging why + recommendation? those should be
+two"). They answer different questions and he reads them differently: Why is the situation, which he
+checks against what he already knows; Recommendation is your opinion, which he overrules or accepts.
+Fused, the opinion hides inside the description of the situation and he cannot see where the facts
+stop and the advice starts — which is the one thing this table exists to keep visible. The fusion
+creeps in for the same reason terseness does, to save width, and costs the same thing. Same rule for
+Work done: Evidence is its own column, never folded into the description.
 
 | Column | Contains |
 | --- | --- |
