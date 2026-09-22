@@ -1,6 +1,6 @@
 ---
 name: response-format
-description: How to end a response to George — the Work done / Open questions / Actions register, its identifiers, the file that carries them, and the clarification gate. Read before composing any substantive reply; the UserPromptSubmit hook points every turn at this file.
+description: How to end a response to George — the Targets / Threads / Work done / Open questions / Actions register, its identifiers, the file that carries them, and the clarification gate. Read before composing any substantive reply; the UserPromptSubmit hook points every turn at this file.
 ---
 
 # How to report to George
@@ -24,9 +24,83 @@ question costs one round.
 
 ## Render order
 
-Prose answer, then **Work done → Open questions → Actions → Background**, in that order every time.
-Background sits last, under Actions (George, r30): it is status, not something he acts on, so it
-must never push his to-do list further down the screen.
+Prose answer, then **Targets → Threads → Work done → Open questions → Actions → Background**, in
+that order every time. Background sits last, under Actions (George, r30): it is status, not
+something he acts on, so it must never push his to-do list further down the screen.
+
+## Targets — what the session is aiming at (ruled r39)
+
+A **Target** is the session's own aim, stated by George, not detected by you the way Threads are.
+One or two active at a time — more than that stops being a guardrail and becomes a second to-do
+list. Where a Thread is "a line of thought that outlives one exchange," a Target is bigger and
+flatter: it is *why* the threads underneath it exist, and it is written so it can be **hit or
+missed**, not just discussed.
+
+**George paints the target; you evaluate it before it goes in the table.** When he states one,
+weigh in — plainly, before rendering it as accepted:
+
+- **Actionable** — is there a concrete next step, or is it a wish?
+- **Hittable** — can this plausibly close within the session, not an open-ended aspiration that
+  never resolves?
+- **Falsifiable** — is there a condition that clearly says "hit" versus "not yet," or could
+  everything and its opposite both be argued to satisfy it?
+- **Concerns** — anything that gives you pause: too broad, conflicts with an already-active
+  Target, hides a decision he hasn't actually made yet.
+
+Say this once, briefly, when the Target is stated — not as a table, as prose, the same register a
+clarification gets. He can revise it in response; only render it into the Targets table once it is
+in a shape you would be willing to be held to.
+
+**If a session gets underway with no Target stated, remind him once** — a short line, not a block
+— rather than silently proceeding without one. Ongoing work continues normally; this is a nudge,
+not a gate.
+
+**Table shape**, above Threads, rendered every round while any Target is active:
+
+| X# | 🙂 | Target | Hit when | Status |
+| --- | --- | --- | --- | --- |
+| X1 | 😎 | Close tap#750's scheduled-task gap | Primitive built, verified, and adopted by github_core | Active |
+
+- The ID prefix is `X`, so it never collides with `T` (Threads), `W`/`Q`/`A` (the register rows),
+  or `AW` (answers). Assigned once, never reused — the same rule every other identifier in this
+  file follows.
+- The glyph is a **smiley**, one per Target, chosen to be visually distinct from any other Target
+  active this session — this is deliberately a different family than the Threads glyphs (🔎, 🩹,
+  📜, ...), so a face means "which aim" and the other glyph means "what kind of thread," and the
+  two are never confused for each other. Pick from a varied, legible rotation (😎 🤓 🧐 🥳 😌 🤠
+  🥸 😏 and similar) rather than reusing the same one or two faces every session.
+- `Hit when` is the falsifiable condition agreed at intake — not restated prose, the actual test.
+
+### Tagging Threads with a Target
+
+Every Thread that serves an active Target carries that Target's smiley **alongside** its own
+glyph: `T9 🔎😎` — still legible as "an investigation," now also legible as "the 😎 target's."
+
+**A Thread with no Target's smiley is the drift signal, made visible instead of narrated.** Don't
+invent a mapping to avoid the gap — if a Thread doesn't trace to a stated Target, it wears `⚠️`
+instead of a face:
+
+| T# | | Title | Description |
+| --- | --- | --- | --- |
+| T9 | 🔎😎 | Scheduled-task timeout gap | serves X1 |
+| T12 | 🩹⚠️ | (unrelated one-off fix) | not mapped to any active Target |
+
+Seeing `⚠️` on a row is the cue to say so out loud — either the Target should expand to cover it
+on purpose, or it should not be happening without a check-in. Never quietly pick a Target to pin
+it to just to clear the warning.
+
+### Closing a Target
+
+When a Target is hit, missed, or abandoned, say which — plainly, in prose, the same way a Thread
+closure gets a status box — before it drops from the live table. A Target does not just fade out;
+it resolves.
+
+| X# | Verdict |
+| --- | --- |
+| X1 | Hit — `run_with_ceiling` built, verified two ways, adopted by github_core, both PRs open |
+
+Closed Targets move to a short reference list under the live table, the same pattern Threads use,
+so a later session can see what this one was actually aimed at without re-reading the transcript.
 
 ## The three tables
 
@@ -216,9 +290,9 @@ by its own prose, never one table with two rows.
   keeps them.
 - The table is **omitted entirely** when no thread question was asked. Never invent one.
 
-Order with the rest of the register: **Threads → Answers → Work done → Open questions → Actions →
-Background.** Threads and answers come first because they are what he asked about; work and actions
-are what happened around them.
+Order with the rest of the register: **Targets → Threads → Answers → Work done → Open questions →
+Actions → Background.** Targets and Threads come first because they frame what he asked about;
+work and actions are what happened around them.
 
 ## Width — these are terminal tables
 
@@ -250,9 +324,9 @@ carried-forward age is a lie if the numbering restarts.
 
 - Location: `<session scratchpad>/response-register.md` (the scratchpad directory named in the
   session's environment).
-- Contents: the three tables plus a **Rulings** section — one line per answered question and closed
-  action, with the ruling and the round. That is what makes an interrupted or compacted session
-  resumable, and what keeps a dropped row recoverable.
+- Contents: Targets, Threads, and the three register tables, plus a **Rulings** section — one line
+  per answered question and closed action, with the ruling and the round. That is what makes an
+  interrupted or compacted session resumable, and what keeps a dropped row recoverable.
 - Update it **before** composing the response: append new rows, mark answered ones, bump the round.
   Then render the open rows.
 
