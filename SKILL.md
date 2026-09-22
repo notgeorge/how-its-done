@@ -341,7 +341,7 @@ getting this wrong pushes every column after a code span out of line.
 | Between tables | Two blank lines (held open by NBSP lines; genuinely empty ones collapse) |
 | Between rows | One blank line |
 | Heading | `SECTION ┈┈┈┈…` — the hairline trails the name and runs the width; in Actions it runs to the `Recommendation` label |
-| Work-done summary | Its own line, left-flush, directly under the heading |
+| Work-done summary | A `WDS:` row BELOW the work table, not above it — it is what George glances back to, so it sits where the eye lands after reading the rows (r70) |
 | Header row | None, except `Recommendation` on the Actions heading line |
 
 **Why each of those, briefly, so a later session does not "improve" them back:**
