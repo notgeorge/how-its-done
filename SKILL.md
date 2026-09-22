@@ -313,6 +313,55 @@ Order with the rest of the register: **Targets → Threads → Answers → Work 
 Actions → Background.** Targets and Threads come first because they frame what he asked about;
 work and actions are what happened around them.
 
+## The rendered layout (settled r54-r69, George driving)
+
+The register is no longer markdown tables. It is fixed-width columns emitted as plain text,
+which buys wrapped cells, controlled line breaks and a readable measure — while keeping inline
+markdown live, which a fenced block does not. `check-response.py` in this directory renders it
+and checks it against the rules below, sharing one parser so the two cannot drift.
+
+**How it holds together.** Padding is non-breaking spaces (U+00A0), which markdown does not
+collapse the way it collapses ordinary runs. Every line ends with two trailing spaces, a GFM
+hard break, so hand-wrapped lines are not reflowed into one paragraph. `<br>` is NOT an option
+— r19 proved it dead in this terminal.
+
+**Measure the render, not the source.** A cell whose source is `` `#767` `` is seven characters
+and displays as four. Wrapping and padding both count display width and emit source text;
+getting this wrong pushes every column after a code span out of line.
+
+**The settled geometry:**
+
+| Thing | Value |
+| --- | --- |
+| Total width | 200 columns |
+| Body cell cap | ~66-72 columns, so prose wraps at a readable measure |
+| Gutter | 5 non-breaking spaces between every column |
+| Column order | ID, thread tag, title, body (and Recommendation in Actions), round trailing |
+| Row order | Oldest first, by the round raised — staleness becomes position, which costs no ink |
+| Between tables | Two blank lines (held open by NBSP lines; genuinely empty ones collapse) |
+| Between rows | One blank line |
+| Heading | `SECTION ┈┈┈┈…` — the hairline trails the name and runs the width; in Actions it runs to the `Recommendation` label |
+| Work-done summary | Its own line, left-flush, directly under the heading |
+| Header row | None, except `Recommendation` on the Actions heading line |
+
+**Why each of those, briefly, so a later session does not "improve" them back:**
+
+- **ID stays leftmost** even though Tufte says the left edge belongs to meaning — George types
+  `A48` back constantly and hunting the right margin for it is worse than the problem it solves.
+- **The thread tag sits second**, not trailing. It reads as administrative metadata and is not:
+  it answers "which of my goals does this serve", which is exactly what gets scanned for. I moved
+  it right on Tufte grounds and was corrected (r67).
+- **One grid across all three tables**, not per-table widths, so the eye stops re-acquiring the
+  column boundary at every section. A narrow table carrying a wider gutter than it needs is the
+  price, and it is the right one.
+- **Glyphs are measured at two columns** (`unicodedata.east_asian_width`), combining marks and
+  ZWJ at zero. Pad by `len()` and every row with an emoji goes ragged.
+- **Bold is banned in every cell, not just some** (r57). Beyond legibility it is now mechanical:
+  a bold run can render wider than its plain equivalent and skew its own column and all after it.
+- **The hairline is `┈`, not `-`.** A run of hyphens is markdown: it becomes a horizontal rule, or
+  turns the line above it into a setext heading. Box-drawing characters have no markdown meaning
+  and cannot break the hard-break scheme.
+
 ## Width — these are terminal tables
 
 **One consolidated table per section. Three or four columns, prefer three. Cells are as long as the
