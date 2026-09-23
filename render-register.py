@@ -259,7 +259,10 @@ def render(md: str) -> str:
         blocks.append(tl)
     # Anything the walk above skipped, said out loud. A renderer that silently omits an
     # unrecognised section is how `## Background` went missing for a whole evening.
-    known = set(SHAPE) | {"background", "tl;dr"}
+    # "answers" renders through its own path, not the SHAPE walk — omitting it here made
+    # the warning fire on a correct draft (highbar, r85). A checker that cries wolf is one
+    # its reader learns to skim, which is the failure this warning exists to prevent.
+    known = set(SHAPE) | {"answers", "background", "tl;dr"}
     for t in _cr.parse(md)[1]:
         if t.heading.lower() not in known and t.heading != "(preamble)":
             print(f"[render-register] WARNING: no renderer for section {t.heading!r}", file=sys.stderr)
