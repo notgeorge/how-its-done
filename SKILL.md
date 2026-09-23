@@ -163,6 +163,12 @@ decision he did not need to make.
 The title and the question are separate columns (George, r34) so the titles form a scannable left
 edge instead of being buried at the head of a paragraph.
 
+**Sub-questions get their own lines, lettered** (George, highbar r14). When one entry asks several
+things, write each as its own line inside the `??` cell — `Q23a …`, `Q23b …` — so he can answer
+line by line (`Q23c - yes`). In the draft, separate them with ` ¶ `; the renderer starts each
+segment on a new line in its column (a table cell cannot hold a newline, and `<br>` does not render
+here, r19). The same break works in any cell whose content has parts worth separating.
+
 **Answered questions drop off.** Once he rules, the row disappears from the next response; the
 ruling is recorded in the register file, not re-displayed. Unanswered questions **carry forward
 unchanged, with their original ID and Raised value**.
