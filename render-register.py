@@ -251,10 +251,57 @@ def render(md: str) -> str:
         if key == "work done" and summary:
             text += BREAK + BLANK.rstrip("\n") + BREAK + summary
         blocks.append(text)
+    bg = background_block(md)
+    if bg:
+        blocks.append(bg)
     tl = tldr_block(md)
     if tl:
         blocks.append(tl)
+    # Anything the walk above skipped, said out loud. A renderer that silently omits an
+    # unrecognised section is how `## Background` went missing for a whole evening.
+    known = set(SHAPE) | {"background", "tl;dr"}
+    for t in _cr.parse(md)[1]:
+        if t.heading.lower() not in known and t.heading != "(preamble)":
+            print(f"[render-register] WARNING: no renderer for section {t.heading!r}", file=sys.stderr)
     return (BREAK + BLANK + BLANK).join(blocks)
+
+
+def background_block(md: str, width: int = 96) -> str:
+    """The live waits, last. One line per wait, each saying WHEN IT FIRES.
+
+    This section existed in the contract and not in this renderer — `render()` only walked
+    tables whose heading is in SHAPE, and "background" was never added, so a draft carrying
+    one rendered every other section and dropped this one in silence. Found by the highbar
+    session (r84) after it had hand-appended the strip three times to compensate.
+
+    Worth naming the shape of the bug rather than just fixing it: SHAPE is an allowlist, and
+    an unknown heading was skipped rather than refused. A renderer that silently omits what
+    it does not recognise will keep doing it every time the contract grows, which is why the
+    `continue` below now has an explicit companion in `render()` that reports the skip.
+    """
+    # Read the section text directly rather than going through parse(): Background is ONE
+    # row with no header, and parse() only registers a table when a `|---|` separator
+    # follows the first line. So the section was invisible at TWO layers — parse skipped
+    # the headerless row, and render() skipped the unrecognised heading — which is how a
+    # whole section of the contract went unrendered without a single error.
+    m = re.search(r"^## Background\s*$", md, re.M)
+    if not m:
+        return ""
+    body = re.split(r"^## ", md[m.end():], maxsplit=1, flags=re.M)[0]
+    cells: list[str] = []
+    for line in body.splitlines():
+        if line.strip().startswith("|"):
+            cells += [c.strip() for c in line.strip().strip("|").split("|")]
+    waits = [c for c in cells if c and c.lower() != "background" and not set(c) <= set("-: ")]
+    if not waits:
+        return ""
+    out = [heading("Background")]
+    for w in waits:
+        wrapped = _cr.wrap_markdown(w, width - 2)
+        out.append("· " + wrapped[0])
+        out += [NBSP * 2 + x for x in wrapped[1:]]
+        out.append("")
+    return BREAK.join(out).rstrip()
 
 
 def tldr_block(md: str, width: int = 96) -> str:
