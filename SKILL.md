@@ -167,7 +167,7 @@ edge instead of being buried at the head of a paragraph.
 things, write each as its own line inside the `??` cell — `Q23a …`, `Q23b …` — so he can answer
 line by line (`Q23c - yes`). In the draft, separate them with ` ¶ `; the renderer starts each
 segment on a new line in its column (a table cell cannot hold a newline, and `<br>` does not render
-here, r19). The same break works in any cell whose content has parts worth separating.
+here, r19). The same break works in any cell whose content has parts worth separating. A cell that must show a literal pilcrow cannot — `¶` is reserved for the break.
 
 **Answered questions drop off.** Once he rules, the row disappears from the next response; the
 ruling is recorded in the register file, not re-displayed. Unanswered questions **carry forward
