@@ -309,6 +309,27 @@ by its own prose, never one table with two rows.
   keeps them.
 - The table is **omitted entirely** when no thread question was asked. Never invent one.
 
+**How it renders (ruled r11 of the highbar session, 2026-09-22; supersedes nothing above, adds the
+shape).** Answers do NOT take the grid's columns. George: "answer: explanation, then the text below
+it. wide format vs columns. but the width of the answer should be constrained so it doesn't fill the
+whole screen. if there are specific sections to call out tufte-style then place them in a column to
+the right." So `render-register.py` draws each answer as:
+
+- a **headline**: `AW#` at the ID edge, the thread tag, then the one-sentence answer — the round trails
+  like every other row;
+- the **explanation** as prose underneath, starting at the answer's text column (the ID edge stays
+  clean for scanning), wrapped at `ANSWER["text"]` = 80 display columns so it never runs the width of
+  the terminal; `- ` lines render as bullets;
+- **sidenotes**, Tufte-style, in a right-hand column (`ANSWER["side"]` = 46) level with the paragraph
+  they annotate. Use them for the call-out a reader should see without reading the paragraph — a
+  caveat, the evidence, the one number — not for a second explanation.
+
+Draft source: under `## Answers`, the single-row `| AW# | T# | Answer |` table per answer (so
+`check-response.py`'s `check_answers` still finds it by the `AW` header), then the explanation as plain
+paragraphs separated by blank lines, and a `> ` line directly under a paragraph for that paragraph's
+sidenote. The old instruction "the explanation as prose directly below that table" still holds — this
+is its rendered form, not a replacement.
+
 Order with the rest of the register: **Targets → Threads → Answers → Work done → Open questions →
 Actions → Background.** Targets and Threads come first because they frame what he asked about;
 work and actions are what happened around them.
