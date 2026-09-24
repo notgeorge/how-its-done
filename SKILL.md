@@ -389,6 +389,32 @@ getting this wrong pushes every column after a code span out of line.
   turns the line above it into a setext heading. Box-drawing characters have no markdown meaning
   and cannot break the hard-break scheme.
 
+## TL;DR — the closing summary (ruled r83)
+
+**Last section, after Background.** A short list of bullets under the same hairline as every
+other section, rendered from a `## TL;DR` section of `- ` lines in the draft.
+
+**What it covers: the PROSE at the top of the response, and nothing else.** Threads, Open
+questions, Actions and Targets all render their own rows; summarising them again here is the
+"repetition" failure this whole format exists to remove. The prose answer is the only part of a
+response with no row of its own, and therefore the only part with no other way to be found
+again. George's reason for wanting it: "that way i know whether or not to scroll back up."
+
+**Naming.** George introduced it as "a commentary at the bottom of the response of Key Points"
+and then said "in fact call that TL;DR" — so the HEADING is `TL;DR`, but he refers to it
+conversationally as Key Points. If he asks where the Key Points section went, he means this one.
+
+**Format:** bullets at a fixed width so nothing wraps off the page at any terminal width, with a
+blank line between each so they breathe. `render-register.py` does all of that; write the draft
+section as plain `- ` bullets and let it render.
+
+**This section is here because it was missing.** The TL;DR was built into the renderer at r83 and
+never written down, so sessions following SKILL.md — correctly — never produced one, and George
+had to ask why it kept disappearing. That is the third time in one evening the contract and its
+tooling drifted apart (`THREAD_TAG`, the Work-done summary placement, this). The lesson is not
+"document better", it is that **a rule that lives only in code is not part of the contract**, and
+the person who adds a feature to the renderer owns writing it here in the same change.
+
 ## Width — these are terminal tables
 
 **One consolidated table per section. Three or four columns, prefer three. Cells are as long as the

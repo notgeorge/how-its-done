@@ -150,6 +150,19 @@ def find(tables: list[Table], name: str) -> Table | None:
 # --- checks ----------------------------------------------------------------
 
 
+def check_tldr(md: str, tables: list[Table], rep: Report) -> None:
+    """A substantive response ends with a TL;DR (r83). Silence here was the bug: the section
+    lived in the renderer and not in SKILL.md, so drafts that followed the contract correctly
+    produced none and nothing said so. Skipped for a trivial turn, which has no prose to
+    summarise — judged by whether the draft carries the full register."""
+    if not any(t.heading.lower() in {"work done", "actions"} for t in tables):
+        return
+    import re as _re
+
+    if not _re.search(r"^## TL;DR\s*$", md, _re.M):
+        rep.fail("TL;DR", "no `## TL;DR` section — a substantive response closes with one (r83)")
+
+
 def check_no_bold_anywhere(tables: list[Table], rep: Report) -> None:
     """Bold is banned in EVERY cell, not just the ones r34 named (r57, George: "NEVER USE
     BOLD TEXT"). Two reasons now, and the second is mechanical: in the NBSP form a bold run
@@ -377,6 +390,7 @@ def main(argv: list[str] | None = None) -> int:
 
     check_order(headings, rep)
     check_no_bold_anywhere(tables, rep)
+    check_tldr(md, tables, rep)
     check_targets(find(tables, "Targets"), args.register, rep)
     check_threads(find(tables, "Threads"), rep)
     for t in tables:
