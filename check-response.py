@@ -154,7 +154,20 @@ def check_tldr(md: str, tables: list[Table], rep: Report) -> None:
     """A substantive response ends with a TL;DR (r83). Silence here was the bug: the section
     lived in the renderer and not in SKILL.md, so drafts that followed the contract correctly
     produced none and nothing said so. Skipped for a trivial turn, which has no prose to
-    summarise — judged by whether the draft carries the full register."""
+    summarise — judged by whether the draft carries the full register.
+
+    KNOWN LIMIT, stated rather than left to be discovered: this asserts the section EXISTS.
+    It cannot tell whether the bullets summarise the prose above them or merely repeat the
+    Actions table, which is the whole point of the section and the thing that will decay.
+    Presence is not correctness.
+
+    That gap is the pattern this repo hit seven times in two days (demo-dev's framing,
+    r89): a check that asserts STABILITY OF AN ARTEFACT where what was wanted is A PROPERTY
+    OF THE OUTPUT. A snapshot says the SQL is unchanged, not that it filters retired rows;
+    a ratchet says the error count is unchanged, not that it is accurate; this says a
+    heading is present, not that what follows it is a summary. Stability is cheap to assert
+    and nearly free to satisfy, which is why these accumulate — so when a green check here
+    is read as "the TL;DR is good", it is being read for more than it says."""
     if not any(t.heading.lower() in {"work done", "actions"} for t in tables):
         return
     import re as _re
