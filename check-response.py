@@ -140,6 +140,23 @@ def split_row(line: str) -> list[str]:
     return [c.strip() for c in line.strip().strip("|").split("|")]
 
 
+def section_body(md: str, heading: str) -> str:
+    """The raw text under `## <heading>`, up to the next `## `. Empty when absent.
+
+    Added for render-artifact.py (2026-09-26). Sections whose content is NOT a well-formed
+    table — `## Background` is one headerless row, `## TL;DR` is bare `- ` bullets — are
+    invisible to `parse()`, which only registers a table once a `|---|` separator follows
+    its first line. Both renderers need those sections, and both were about to grow their
+    own `md.split("## ...")` to get them, which is how a second parser starts. The heading
+    is matched ANCHORED to the start of a line: a bare substring search lands inside any
+    cell that happens to name the section, which is exactly the bug r83's TL;DR block hit.
+    """
+    m = re.search(rf"^##\s+{re.escape(heading)}\s*$", md, re.M)
+    if not m:
+        return ""
+    return re.split(r"^##\s", md[m.end():], maxsplit=1, flags=re.M)[0]
+
+
 def find(tables: list[Table], name: str) -> Table | None:
     for t in tables:
         if t.heading.lower() == name.lower():
