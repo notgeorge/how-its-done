@@ -438,7 +438,7 @@ round goes on the page, in the masthead beside the session name.
 | Surface | Carries |
 | --- | --- |
 | The artifact | Everything. The prose answer, then Targets → Threads → Answers → Work done → Open questions → Actions → Background → TL;DR |
-| The terminal | `<session> · r<N>`, the TL;DR, and an INDEX of Open questions and Actions — identifier, glyphs and the 4-8 word title only. No bodies, no recommendations |
+| The terminal | `<session> · r<N>`, the TARGETS table, the TL;DR, and an INDEX of Open questions and Actions — identifier, glyphs and the 4-8 word title only. No bodies, no recommendations |
 
 The index is a pointer, not a summary. Its job is that George can type `A48` back without opening
 the page, and can see at a glance how many decisions are waiting on him.
@@ -458,10 +458,20 @@ the DRAFT format, upstream of both renderers — a cell still cannot show a lite
 `--check` rules on cell length, bold-in-cells and Evidence lines still apply: they are about
 whether the writing carries meaning, not about whether the terminal can paint it.
 
-**Still open at the time of writing (Q100):** whether the Targets table also keeps a one-line strip
-in the terminal. The contract makes Targets an every-round guardrail whose whole job is answering
-"are we still aimed at the thing" without George asking, and the failure it was built to catch was
-it silently vanishing (r40). Behind a click it stops doing that. Not yet ruled.
+**Targets stays in the terminal too (Q100, ruled 2026-09-26).** It prints FIRST, above the TL;DR,
+one compact line per Target with its status; `Hit when` is page-only. The reason it survived the
+move is the reason it exists: it is the every-round guardrail that answers "are we still aimed at
+the thing" without George asking, and the failure it was built to catch was it silently vanishing
+(r40). A guardrail behind a click does not guard — if he has not opened the page, the thing the
+table exists to catch is exactly what has happened. Background did not get the same treatment and
+is page-only.
+
+**Evidence gets its own column on the page (ruled 2026-09-26) — and this is not a reversal of
+r19.** r19 folded Evidence INTO the `What I did` cell because four columns of long prose was too
+wide *in a fixed-width terminal*. That constraint is the whole of r19's reasoning, and it does not
+exist in HTML. So the page sets Evidence in a column to the right of the description, and the text
+renderer keeps the folded form. Both are correct for their surface; the rule was never about where
+evidence belongs, it was about what a terminal can paint.
 
 ## Width — these are terminal tables
 
