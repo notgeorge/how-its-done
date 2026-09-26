@@ -366,7 +366,7 @@ getting this wrong pushes every column after a code span out of line.
 | Column order | ID, thread tag, title, body (and Recommendation in Actions), round trailing |
 | Row order | Oldest first, by the round raised — staleness becomes position, which costs no ink |
 | Between tables | Two blank lines (held open by NBSP lines; genuinely empty ones collapse) |
-| Between rows | One blank line |
+| Between rows | One blank line; in Open questions, also a `╌` divider line under every question but the last (bom-bom r30: sub-question blanks made the boundary between questions invisible) |
 | Heading | `SECTION ┈┈┈┈…` — the hairline trails the name and runs the width; in Actions it runs to the `Recommendation` label |
 | Work-done summary | A `WDS:` row BELOW the work table, not above it — it is what George glances back to, so it sits where the eye lands after reading the rows (r70) |
 | Header row | None, except `Recommendation` on the Actions heading line |

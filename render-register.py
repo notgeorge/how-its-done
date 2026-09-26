@@ -247,6 +247,13 @@ def render(md: str) -> str:
                 thread = ""
             lines += row([rid, thread] + rest, shape["thread"], shape["bodies"], tail)
             lines.append("")
+            # A divider under every open question except the last (George, bom-bom r30):
+            # sub-question segments already carry blank lines, so a blank alone no longer
+            # tells where one question ends and the next begins. `╌`, never `-`, for the
+            # same markdown reason as the heading hairline.
+            if key == "open questions" and r is not rows[-1]:
+                lines.append("╌" * full_width())
+                lines.append("")
         text = BREAK.join(lines).rstrip()
         if key == "work done" and summary:
             text += BREAK + BLANK.rstrip("\n") + BREAK + summary
