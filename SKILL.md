@@ -415,43 +415,59 @@ tooling drifted apart (`THREAD_TAG`, the Work-done summary placement, this). The
 "document better", it is that **a rule that lives only in code is not part of the contract**, and
 the person who adds a feature to the renderer owns writing it here in the same change.
 
-## The artifact split (ruled 2026-09-26, George driving)
+## Publishing: local register pages (ruled 2026-09-27, George driving)
 
-**The register is published as an HTML artifact; the terminal keeps a pointer to it.** George:
-"I want to try reading your responses as artifacts instead of printed to the screen. It should
-make formatting worlds easier when you can use html instead of text counting to generate the
-tables."
+**Every session, every round.** George, after trialling it in bom-bom: "this response format is
+working - do what needs to be done to make it consistent so all future sessions use it."
 
-That is the whole reason. Everything in *Width* and *The rendered layout* below exists because
-fixed-width text has to be measured by hand — display width versus source width, NBSP padding,
-two-space hard breaks, a reserved `¶` because a cell cannot hold a newline. HTML has rows and
-cells, so none of that arithmetic is load-bearing any more.
+**History, so nobody goes back.** On 2026-09-26 the register moved from fixed-width terminal text
+to HTML, because HTML has rows and cells and the width arithmetic below stops being load-bearing.
+It was first published as a claude.ai Artifact republished in place. That lost the history,
+because each republish replaced the last round and George could not look back. So the pages are
+now LOCAL files, one kept per round, plus a live page that follows the newest round. Do not
+publish the register as a claude.ai Artifact.
 
-**One artifact per session, republished in place every round.** Same file path, so the same URL:
-George keeps a tab open and it updates under him. The `<title>` names the SESSION first —
-`demo-dev Session Register` — because he runs many sessions at once and an unlabelled page is
-unattributable. The title carries no round number, so it stays one recognisable gallery entry; the
-round goes on the page, in the masthead beside the session name.
+**The round, end to end:**
+
+    # 1. update the register, write the draft, validate (unchanged)
+    python3 ~/.claude/skills/response-format/render-register.py --check --register <register> <draft-rN.md>
+    # 2. publish the pages (run from the session's working directory)
+    python3 ~/.claude/skills/response-format/publish-register.py <draft-rN.md>
+    # 3. the terminal block
+    python3 ~/.claude/skills/response-format/render-artifact.py <draft-rN.md> --terminal
+
+`publish-register.py` takes the session name from the working directory's basename (override
+with `--session NAME`). It writes to `~/.claude/projects/<cwd slug>/registers/`, the project's own
+Claude directory, so each session keeps its own history:
+
+| File | What it is |
+| --- | --- |
+| `rN.html` | This round, kept forever. Header: session · round · timestamp, prev/next, all rounds, latest |
+| `rN.draft.md`, `rN.time` | The source draft and the first-publish time, so a re-stitch never moves the stamp |
+| `current.html` | The live page. It polls `latest.js` every 5s and reloads when a newer round lands. George keeps it open |
+| `latest.js`, `index.html` | The newest round number, and every round newest-first with its TL;DR headline |
+
+The draft's file name carries the round (`draft-r125.md` becomes r125). The header colours come
+from the renderer's theme tokens, so it follows light and dark with the rest of the page.
 
 **What goes where:**
 
 | Surface | Carries |
 | --- | --- |
-| The artifact | Everything. The prose answer, then Targets → Threads → Answers → Work done → Open questions → Actions → Background → TL;DR |
-| The terminal | `<session> · r<N>`, the TARGETS table, the TL;DR, and an INDEX of Open questions and Actions — identifier, glyphs and the 4-8 word title only. No bodies, no recommendations |
+| The page | Everything. The prose answer, then Targets → Threads → Answers → Work done → Open questions → Actions → Background → TL;DR |
+| The reply in the terminal | The prose BLUF; then the `--terminal` output VERBATIM in a code fence: `<session> · r<N>`, Targets, TL;DR, and an INDEX of Open questions and Actions (identifier, glyphs, the 4-8 word title); then one line with the live page's path |
 
 The index is a pointer, not a summary. Its job is that George can type `A48` back without opening
-the page, and can see at a glance how many decisions are waiting on him.
+the page, and can see at a glance how many decisions are waiting on him. The code fence keeps the
+index's alignment intact in the terminal.
 
-**The tooling.** `render-artifact.py` in this directory, beside the text renderer:
+**A trivial turn** (a watcher firing mid-wait, an ack) does not publish a round. It gets the net-net
+table in *Trivial turns* below. Publish when the register has changed enough to be worth a page.
 
-    python3 render-artifact.py <draft.md> --html <out.html>   # the artifact body
-    python3 render-artifact.py <draft.md> --terminal          # session, TL;DR, index
-
-Both renderers import ONE parser from `check-response.py` — that rule long predates this split and
-is what stops the page and the terminal becoming two different truths. `render-register.py` still
-exists and still renders the full fixed-width form; use it when there is no artifact surface, and
-for `--check`, which remains the only contract validator.
+**The tooling.** Both renderers import ONE parser from `check-response.py`, which is what stops the
+page and the terminal becoming two different truths. `render-register.py` still renders the full
+fixed-width form and still owns `--check`, the only contract validator. Use its full render only
+where local files cannot be opened.
 
 **What did NOT move.** `¶` is still the reserved sub-question break, because the sentinel lives in
 the DRAFT format, upstream of both renderers — a cell still cannot show a literal pilcrow. The
