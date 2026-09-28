@@ -489,6 +489,16 @@ exist in HTML. So the page sets Evidence in a column to the right of the descrip
 renderer keeps the folded form. Both are correct for their surface; the rule was never about where
 evidence belongs, it was about what a terminal can paint.
 
+**Each section carries one muted hue on the page (ruled 2026-09-28, George: "headers and
+sub-headers and tables should use colors gently to break up the text so it's not monotone").**
+Targets plum, Threads dusty blue, Answers violet, Work done teal, Open questions ochre, Actions
+terracotta, Background slate, TL;DR sage. The hue is spent in five places only: the section heading
+and its faint band, the ID column, the hairline between rows, the Evidence bar and the Work-done
+summary row. Body text, glyphs and links stay neutral, so colour says where you are on the page and
+never what a row means. Tokens are `--hue-*` in `render-artifact.py`, redefined for dark, and every
+hue clears 4.4:1 against the page in both themes. The terminal cannot do this: theme tokens do not
+reach assistant output (tested 2026-09-21), so the terminal block's only colour is emoji.
+
 ## Width — these are terminal tables
 
 **One consolidated table per section. Three or four columns, prefer three. Cells are as long as the

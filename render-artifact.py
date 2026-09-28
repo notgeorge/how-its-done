@@ -608,6 +608,15 @@ CSS = """
   --warn-rule:#c99a3d;
   --code-bg: #e5eaea;
   --shadow:  rgba(20,40,40,.08);
+  /* Section hues: one muted colour per section, chosen to sit together, not to shout. */
+  --hue-targets:    #8a5a83;
+  --hue-threads:    #4a6a9a;
+  --hue-answers:    #6b5aa0;
+  --hue-work-done:  #14615c;
+  --hue-open-questions: #9a6a1c;
+  --hue-actions:    #a24d3d;
+  --hue-background: #5c6f7a;
+  --hue-tl-dr:      #5a7a3f;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -626,6 +635,14 @@ CSS = """
     --warn-rule:#8a6a24;
     --code-bg: #232c2e;
     --shadow:  rgba(0,0,0,.4);
+    --hue-targets:    #c39abd;
+    --hue-threads:    #8fb0dc;
+    --hue-answers:    #b1a3dd;
+    --hue-work-done:  #6dc0b4;
+    --hue-open-questions: #e0b566;
+    --hue-actions:    #e39a89;
+    --hue-background: #9fb0ba;
+    --hue-tl-dr:      #a4c88b;
   }
 }
 :root[data-theme="dark"] {
@@ -644,6 +661,14 @@ CSS = """
   --warn-rule:#8a6a24;
   --code-bg: #232c2e;
   --shadow:  rgba(0,0,0,.4);
+  --hue-targets:    #c39abd;
+  --hue-threads:    #8fb0dc;
+  --hue-answers:    #b1a3dd;
+  --hue-work-done:  #6dc0b4;
+  --hue-open-questions: #e0b566;
+  --hue-actions:    #e39a89;
+  --hue-background: #9fb0ba;
+  --hue-tl-dr:      #a4c88b;
 }
 
 --- FACES ---
@@ -988,6 +1013,52 @@ pre.passthrough {
   word-break: break-word;
 }
 
+/* --- section hues ---
+   The page was one slate wash with a single teal accent. Each section now carries one muted
+   hue (the --hue-* tokens above, redefined for dark) and spends it in the same few places:
+   the heading and its band, the ID column, the hairline between rows, the evidence bar and
+   the summary row. Body text, glyphs and links keep the neutral ink: colour marks WHERE you
+   are on the page, never what a row means. Tints use color-mix; where a browser lacks it the
+   declaration is dropped and the neutral rule underneath stays, so nothing breaks. */
+.sec { --h: var(--accent); }
+#targets.sec        { --h: var(--hue-targets); }
+#threads.sec        { --h: var(--hue-threads); }
+#answers.sec        { --h: var(--hue-answers); }
+#work-done.sec      { --h: var(--hue-work-done); }
+#open-questions.sec { --h: var(--hue-open-questions); }
+#actions.sec        { --h: var(--hue-actions); }
+#background.sec     { --h: var(--hue-background); }
+#tl-dr.sec          { --h: var(--hue-tl-dr); }
+
+.sec .secname { color: var(--h); }
+.sec .sechead {
+  padding: .34rem .7rem;
+  margin-inline: -.7rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--h) 9%, transparent);
+}
+.sec .hairline {
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--h) 60%, var(--rule)), var(--rule));
+}
+.sec .rulelabel { color: color-mix(in srgb, var(--h) 65%, var(--muted)); }
+.sec .rid, .sec .subid, .sec .wdslabel { color: var(--h); }
+.sec li::marker { color: var(--h); }
+.sec td.evidence {
+  border-left-color: var(--h) !important;
+  background: color-mix(in srgb, var(--h) 6%, var(--panel));
+}
+.sec td.rec { border-left-color: color-mix(in srgb, var(--h) 50%, var(--rule)) !important; }
+.sec tr.wdsrow td.wds {
+  border-top-color: color-mix(in srgb, var(--h) 45%, var(--rule)) !important;
+  background: color-mix(in srgb, var(--h) 7%, var(--panel));
+}
+/* Row hairlines live on the cells on a wide page and on the row once it stacks. */
+@media (min-width: 761px) {
+  .sec table.reg tr + tr td { border-top-color: color-mix(in srgb, var(--h) 16%, var(--rule-2)); }
+}
+
 /* --- narrow: 900px drops the margin column, 760px unstacks the grid --- */
 @media (max-width: 900px) {
   .pair { grid-template-columns: minmax(0, 1fr); }
@@ -1011,6 +1082,7 @@ pre.passthrough {
   }
   table.reg tr + tr { border-top: 1px solid var(--rule); }
   table.reg tr + tr td { border-top: 0; }
+  .sec table.reg tr + tr { border-top-color: color-mix(in srgb, var(--h) 16%, var(--rule)); }
   table.reg td {
     display: block;
     width: auto;
@@ -1037,6 +1109,7 @@ pre.passthrough {
     letter-spacing: .13em;
     text-transform: uppercase;
     color: var(--muted);
+    color: color-mix(in srgb, var(--h) 65%, var(--muted));
     margin-bottom: .3rem;
   }
   table.reg td.hitwhen::before { content: none; }
