@@ -370,7 +370,7 @@ def check_questions(t: Table | None, rep: Report) -> None:
 
 def check_actions(t: Table | None, rep: Report) -> None:
     if t is None:
-        rep.note("no Actions table — fine when George has nothing to do")
+        rep.note("no Actions table — fine when the user has nothing to do")
         return
     if len(t.header) != 5:
         rep.fail(
