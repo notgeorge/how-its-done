@@ -444,7 +444,7 @@ Claude directory, so each session keeps its own history:
 | --- | --- |
 | `rN.html` | This round, kept forever. Header: session · round · timestamp, prev/next, all rounds, latest |
 | `rN.draft.md`, `rN.time` | The source draft and the first-publish time, so a re-stitch never moves the stamp |
-| `current.html` | The live page. It polls `latest.js` every 5s and reloads when a newer round lands. George keeps it open |
+| `current.html` | The live page. It polls `latest.js` every 5s; a newer round pops a modal naming the round and its TL;DR, with one autofocused button — Enter reloads. George keeps it open |
 | `latest.js`, `index.html` | The newest round number, and every round newest-first with its TL;DR headline |
 
 The draft's file name carries the round (`draft-r125.md` becomes r125). The header colours come
