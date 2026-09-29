@@ -135,16 +135,18 @@ def split_tail(rid: str) -> tuple[str, str]:
     return rid.strip(), ""
 
 
-def answer_blocks(md: str) -> list[tuple[list[str], list[tuple[list[str], str]]]]:
-    """Each answer in `## Answers`: its AW table row, and the explanation below it as
-    (paragraph lines, sidenote) pairs. A `> ` line straight after a paragraph is that
-    paragraph's sidenote; a blank line ends a paragraph; the next table or heading ends the
-    explanation. The draft keeps the single-row AW table (r38), so check-response.py's
-    `check_answers` still finds every answer by its `AW` header."""
+def answer_blocks(md: str) -> list[tuple[list[str], str, list[tuple[list[str], str]]]]:
+    """Each answer in `## Answers`: its AW table row, the original question (George,
+    2026-09-29 — quoted or summarized, from a `> Asked: "..."` line immediately under the
+    table), and the explanation below THAT as (paragraph lines, sidenote) pairs. A `> ` line
+    straight after a paragraph is that paragraph's sidenote; a blank line ends a paragraph;
+    the next table or heading ends the explanation. The draft keeps the single-row AW table
+    (r38), so check-response.py's `check_answers` still finds every answer by its `AW`
+    header, and its own `find_asked` reads the same `> Asked:` line this parses."""
     if "## Answers" not in md:
         return []
     section = md.split("## Answers", 1)[1].split("\n## ", 1)[0].splitlines()
-    out: list[tuple[list[str], list[tuple[list[str], str]]]] = []
+    out: list[tuple[list[str], str, list[tuple[list[str], str]]]] = []
     i = 0
     while i < len(section):
         line = section[i]
@@ -154,6 +156,14 @@ def answer_blocks(md: str) -> list[tuple[list[str], list[tuple[list[str], str]]]
             while j < len(section) and section[j].strip().startswith("|"):
                 rows.append(_cr.split_row(section[j]))
                 j += 1
+            question = ""
+            while j < len(section) and not section[j].strip():
+                j += 1
+            if j < len(section):
+                m = _cr.ASKED_RE.match(section[j].strip())
+                if m:
+                    question = m.group(1).strip()
+                    j += 1
             paras: list[tuple[list[str], str]] = []
             buf: list[str] = []
             while j < len(section) and not section[j].strip().startswith("|"):
@@ -175,8 +185,8 @@ def answer_blocks(md: str) -> list[tuple[list[str], list[tuple[list[str], str]]]
             if buf:
                 paras.append((buf, ""))
             for r in rows:
-                out.append((r, paras))
-                paras = []
+                out.append((r, question, paras))
+                question, paras = "", []
             i = j
             continue
         i += 1
@@ -188,7 +198,7 @@ def render_answers(md: str) -> str:
     sep = NBSP * g["gutter"]
     lead = NBSP * (g["id"] + g["gutter"] + g["thread"] + g["gutter"])
     lines = [heading("Answers")]
-    for r, paras in answer_blocks(md):
+    for r, question, paras in answer_blocks(md):
         rid, tail = split_tail(r[0])
         thread = r[1] if len(r) > 1 else ""
         answer = r[2] if len(r) > 2 else ""
@@ -197,6 +207,13 @@ def render_answers(md: str) -> str:
             prefix = (_cr.pad_markdown(rid, g["id"]) + sep + _cr.pad_markdown(thread, g["thread"]) + sep) if k == 0 else lead
             line = prefix + (_cr.pad_markdown(text, ANSWER["text"]) + sep + tail if k == 0 and tail else text)
             lines.append(line.rstrip())
+        if question:
+            # No text label here (r58: the terminal carries no column labels George didn't
+            # ask for, position alone does the work) — the italic quote marks are what set
+            # the original question apart from the explanation that follows it.
+            lines.append(BLANK.rstrip("\n").rstrip())
+            for w in _cr.wrap_markdown(f'*“{question}”*', ANSWER["text"]):
+                lines.append((lead + w).rstrip())
         for para, note in paras:
             lines.append(BLANK.rstrip("\n").rstrip())
             # Consecutive plain lines are one paragraph, reflowed; a `- ` line starts a bullet.

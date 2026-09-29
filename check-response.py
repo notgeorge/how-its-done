@@ -62,6 +62,12 @@ QUESTION_ID = re.compile(r"^Q\d+\s+·\s+r\d+$")  # "Q7 · r14" — and questions
 PLAIN_ID = re.compile(r"^(W\d+|AW\d+|X\d+|T\d+)$")
 BOLD = re.compile(r"\*\*[^*]+\*\*")
 PLACEHOLDER = re.compile(r"^\(?\s*(none|n/?a|tbd|-{1,3})\s*\)?\.?$", re.I)
+#: The original question, quoted or summarized, as the first line under an Answer's table
+#: (George, 2026-09-29: "the answers section should also include the original question I
+#: asked — direct quote ideally, but okay to summarize it if it's a bit disjointed"). Shared
+#: with render-register.py's `answer_blocks`, which is why it lives here and not there —
+#: check-response.py has no reverse dependency on the renderer.
+ASKED_RE = re.compile(r"^>\s*Asked:\s*(.+)$", re.I)
 
 
 @dataclass
@@ -276,7 +282,7 @@ def register_has_active_target(register: Path) -> bool | None:
     return any("X" in ln and not PLACEHOLDER.match(ln.strip().lstrip("- ")) for ln in rows)
 
 
-def check_answers(t: Table | None, rep: Report) -> None:
+def check_answers(t: Table | None, md: str, rep: Report) -> None:
     if t is None:
         return
     if len(t.rows) > 1:
@@ -287,6 +293,27 @@ def check_answers(t: Table | None, rep: Report) -> None:
             if sentences(r[2]) != 1:
                 rep.fail(f"Answers/{r[0]}", f"{sentences(r[2])} sentences — the answer cell is ONE sentence (r38)")
             check_thread_tag(rep, f"Answers/{r[0]}", r[1])
+    if t.rows and not find_asked(md, t):
+        rep.fail(
+            f"Answers/{t.rows[0][0]}",
+            "no 'Asked:' line — the first line under the table must quote or summarize "
+            "the original question (2026-09-29): `> Asked: \"...\"`",
+        )
+
+
+def find_asked(md: str, t: Table) -> str | None:
+    """The `> Asked: ...` line directly under an Answer's table, if present. `t.line` is the
+    separator row's index (see `parse`); the table's data rows occupy the `len(t.rows)`
+    lines after it, so the first line of the explanation starts right after those."""
+    lines = md.splitlines()
+    i = t.line + 1 + len(t.rows)
+    while i < len(lines) and not lines[i].strip():
+        i += 1
+    if i < len(lines):
+        m = ASKED_RE.match(lines[i].strip())
+        if m:
+            return m.group(1).strip()
+    return None
 
 
 def check_work(t: Table | None, md: str, rep: Report) -> None:
@@ -425,7 +452,7 @@ def main(argv: list[str] | None = None) -> int:
     check_threads(find(tables, "Threads"), rep)
     for t in tables:
         if t.header and t.header[0].startswith("AW"):
-            check_answers(t, rep)
+            check_answers(t, md, rep)
     check_work(find(tables, "Work done"), md, rep)
     check_questions(find(tables, "Open questions"), rep)
     check_actions(find(tables, "Actions"), rep)
