@@ -1160,18 +1160,18 @@ def dateline(md: str, draft: Path, tables) -> str:
     return dot.join(esc(b) for b in bits)
 
 
-#: `.../-Users-george-tap-sessions-demo-dev/<uuid>/scratchpad/draft-r20.md` and
-#: `/Users/george/tap-sessions/demo-dev/...` both carry the session slug in a path
-#: component. George runs many sessions at once, so a register with no session name on it
-#: is indistinguishable from any other session's — which is the whole reason this is here.
-_SESSION_PATH = re.compile(r"tap-sessions[-/]([A-Za-z0-9][A-Za-z0-9._-]*)")
-
-
 def resolve_session(draft: Path, given: str | None) -> str:
+    """`publish-register.py` always passes `--session` explicitly (derived the same way,
+    from the calling directory's own name), so this fallback only matters when
+    `render-artifact.py` is run by hand with no `--session`. Running many sessions at once
+    makes a register with no session name on it indistinguishable from any other
+    session's — which is the whole reason a fallback exists at all, rather than an empty
+    title. `Path.cwd().name` is the portable version of that fallback: whatever directory
+    convention a session's working directory follows, its own name is the session name,
+    with no assumption baked in about what that convention looks like."""
     if given:
         return given.strip()
-    m = _SESSION_PATH.search(str(draft.expanduser().resolve()))
-    return m.group(1) if m else ""
+    return Path.cwd().name
 
 
 def page_title(session: str) -> str:

@@ -426,8 +426,14 @@ def stale_merge_actions(md: str) -> list[str]:
                 findings.append(f"{r[0]}: says merge but names no PR in its title — say which one")
             for num in nums:
                 try:
+                    # No --repo: gh infers it from the current directory's own remote, so
+                    # this works against whatever repo the session is actually reporting
+                    # on rather than one hardcoded org's. (Found while publishing this tool
+                    # publicly: the original had one org's repo hardcoded here, silently
+                    # wrong for anyone reporting on a different repo — including, already,
+                    # anyone in the original org working in a different one of their own.)
                     out = subprocess.run(
-                        ["gh", "pr", "view", num, "--repo", "unified-systems-com/tap", "--json", "state"],
+                        ["gh", "pr", "view", num, "--json", "state"],
                         capture_output=True, text=True, timeout=20, check=True,
                     ).stdout
                     state = json.loads(out).get("state", "")
