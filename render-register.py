@@ -209,10 +209,12 @@ def render_answers(md: str) -> str:
             lines.append(line.rstrip())
         if question:
             # No text label here (r58: the terminal carries no column labels George didn't
-            # ask for, position alone does the work) — the italic quote marks are what set
-            # the original question apart from the explanation that follows it.
+            # ask for, position alone does the work) — italics are what set the original
+            # question apart from the explanation that follows it. No added quote marks:
+            # the draft's own `> Asked: "..."` already carries them when it is a direct
+            # quote, and adding more would double them up.
             lines.append(BLANK.rstrip("\n").rstrip())
-            for w in _cr.wrap_markdown(f'*“{question}”*', ANSWER["text"]):
+            for w in _cr.wrap_markdown(f'*{question}*', ANSWER["text"]):
                 lines.append((lead + w).rstrip())
         for para, note in paras:
             lines.append(BLANK.rstrip("\n").rstrip())

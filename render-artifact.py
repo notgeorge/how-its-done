@@ -421,10 +421,12 @@ def answers_html(md: str) -> str:
         if question:
             # George, 2026-09-29: the answer's own question, quoted or summarized, "direct
             # quote ideally" — set apart from the reasoning below it, not folded into the
-            # first paragraph, so a reader can tell what was asked from what is argued.
+            # first paragraph, so a reader can tell what was asked from what is argued. No
+            # added quote glyphs: the draft's own `> Asked: "..."` already carries them for
+            # a direct quote, and adding more would double them up.
             out.append(
                 f'<p class="asked"><span class="asklabel">Asked</span>'
-                f'<span class="askq">“{inline(question)}”</span></p>'
+                f'<span class="askq">{inline(question)}</span></p>'
             )
         for para, note in paras:
             out.append('<div class="pair">')

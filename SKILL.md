@@ -333,9 +333,10 @@ the right." So `render-register.py` draws each answer as:
 
 - a **headline**: `AW#` at the ID edge, the thread tag, then the one-sentence answer — the round trails
   like every other row;
-- the **original question** (2026-09-29), italicized and quoted, on its own line at the answer's text
-  column — unlabeled in the terminal (r58: no column label the format didn't already carry), set on the
-  page with a small caps "Asked" tag and a tinted left rule, the same idiom as Hit when and Evidence;
+- the **original question** (2026-09-29), italicized, on its own line at the answer's text column —
+  unlabeled in the terminal (r58: no column label the format didn't already carry), set on the page
+  with a small caps "Asked" tag and a tinted left rule, the same idiom as Hit when and Evidence; the
+  renderer adds no quote marks of its own, so write `"..."` in the draft when it is a direct quote;
 - the **explanation** as prose underneath, starting at the answer's text column (the ID edge stays
   clean for scanning), wrapped at `ANSWER["text"]` = 80 display columns so it never runs the width of
   the terminal; `- ` lines render as bullets;
