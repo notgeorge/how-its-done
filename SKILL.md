@@ -289,7 +289,8 @@ what George types; the emoji is what he scans for.
 
 ### Answers — AW#
 
-When George asks something inside a thread, answer it in two parts (ruled r38).
+When George asks something inside a thread, answer it in three parts (table and prose ruled r38;
+the question line ruled 2026-09-29).
 
 **1. A single-row table carrying the answer in ONE sentence:**
 
@@ -297,10 +298,17 @@ When George asks something inside a thread, answer it in two parts (ruled r38).
 | --- | --- | --- |
 | AW2 | T9 🔍 | No — the declaration is mandatory even when the key is absent, and nothing is derived today. |
 
-**2. The explanation as prose directly below that table** — paragraphs, headings and lists as the
-material needs, with blank lines between blocks so it is readable. A long cell in a table is not
+**2. The original question, quoted or summarized, as its own line directly under that table**
+(George: "the answers section should also include the original question I asked — direct quote
+ideally, but okay to summarize it if it's a bit disjointed"). Written `> Asked: "..."` — the exact
+words when they stand alone cleanly, a tight summary when his message was longer or more disjointed
+than a single quotable sentence. This is what lets an answer be read on its own later, without
+scrolling back to find out what prompted it — the verdict alone does not carry that.
+
+**3. The explanation as prose directly below the question line** — paragraphs, headings and lists as
+the material needs, with blank lines between blocks so it is readable. A long cell in a table is not
 readable in a terminal; a paragraph is. The table is the verdict and the durable identifier, the
-prose is the reasoning.
+question is what was asked, the prose is the reasoning.
 
 One table per answer. Two thread questions in a message means two single-row tables, each followed
 by its own prose, never one table with two rows.
@@ -314,6 +322,8 @@ by its own prose, never one table with two rows.
 - Answers **drop off** the round after they are given, like answered questions; the register file
   keeps them.
 - The table is **omitted entirely** when no thread question was asked. Never invent one.
+- The `Asked:` line is **required** whenever the table is present — `check-response.py`'s
+  `check_answers` fails an answer with no `> Asked: ...` line as its first line after the table.
 
 **How it renders (ruled r11 of the highbar session, 2026-09-22; supersedes nothing above, adds the
 shape).** Answers do NOT take the grid's columns. George: "answer: explanation, then the text below
@@ -323,6 +333,9 @@ the right." So `render-register.py` draws each answer as:
 
 - a **headline**: `AW#` at the ID edge, the thread tag, then the one-sentence answer — the round trails
   like every other row;
+- the **original question** (2026-09-29), italicized and quoted, on its own line at the answer's text
+  column — unlabeled in the terminal (r58: no column label the format didn't already carry), set on the
+  page with a small caps "Asked" tag and a tinted left rule, the same idiom as Hit when and Evidence;
 - the **explanation** as prose underneath, starting at the answer's text column (the ID edge stays
   clean for scanning), wrapped at `ANSWER["text"]` = 80 display columns so it never runs the width of
   the terminal; `- ` lines render as bullets;
@@ -331,10 +344,12 @@ the right." So `render-register.py` draws each answer as:
   caveat, the evidence, the one number — not for a second explanation.
 
 Draft source: under `## Answers`, the single-row `| AW# | T# | Answer |` table per answer (so
-`check-response.py`'s `check_answers` still finds it by the `AW` header), then the explanation as plain
-paragraphs separated by blank lines, and a `> ` line directly under a paragraph for that paragraph's
-sidenote. The old instruction "the explanation as prose directly below that table" still holds — this
-is its rendered form, not a replacement.
+`check-response.py`'s `check_answers` still finds it by the `AW` header), then a `> Asked: "..."`
+line quoting or summarizing what prompted it, then the explanation as plain paragraphs separated by
+blank lines, with a `> ` line directly under a paragraph for that paragraph's sidenote — the same `>`
+prefix, but only the line immediately after the table is ever read as `Asked:`; every later `> ` line
+is a sidenote. The old instruction "the explanation as prose directly below that table" still holds —
+this is its rendered form, not a replacement.
 
 Order with the rest of the register: **Targets → Threads → Answers → Work done → Open questions →
 Actions → Background.** Targets and Threads come first because they frame what he asked about;

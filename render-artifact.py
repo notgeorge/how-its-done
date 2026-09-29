@@ -405,7 +405,7 @@ def answers_html(md: str) -> str:
     the sidenote can finally be a true margin note level with its paragraph, which is what
     the terminal form was approximating with a 46-column right gutter."""
     out = [section_open("Answers")]
-    for r, paras in _rr.answer_blocks(md):
+    for r, question, paras in _rr.answer_blocks(md):
         rid, tail = id_cell(cell(r, 0))
         tag = cell(r, 1)
         out.append(f'<article class="answer" data-thread="{esc(thread_of(tag))}">')
@@ -418,6 +418,14 @@ def answers_html(md: str) -> str:
             + (f'<span class="around">{esc(tail)}</span>' if tail else "")
             + "</div>"
         )
+        if question:
+            # George, 2026-09-29: the answer's own question, quoted or summarized, "direct
+            # quote ideally" — set apart from the reasoning below it, not folded into the
+            # first paragraph, so a reader can tell what was asked from what is argued.
+            out.append(
+                f'<p class="asked"><span class="asklabel">Asked</span>'
+                f'<span class="askq">“{inline(question)}”</span></p>'
+            )
         for para, note in paras:
             out.append('<div class="pair">')
             out.append(f'<div class="para">{_answer_para(para)}</div>')
@@ -711,7 +719,7 @@ body {
 
 a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: .15em; }
 
-code, .rid, .tnum, .round, .evlabel, .wdslabel, .hwlabel, .subid, .rulelabel, .dateline {
+code, .rid, .tnum, .round, .evlabel, .wdslabel, .hwlabel, .asklabel, .subid, .rulelabel, .dateline {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
@@ -852,7 +860,7 @@ td.status { width: 11rem; font-size: .8rem; color: var(--muted); }
 /* Targets: the falsifiable test is set apart, because it is the thing that says hit or
    not-yet. Everything else in the row is description. */
 td.hitwhen { background: var(--panel); padding: .7rem .8rem; }
-.hwlabel, .evlabel, .wdslabel {
+.hwlabel, .evlabel, .wdslabel, .asklabel {
   display: block;
   font-size: .62rem;
   letter-spacing: .13em;
@@ -943,6 +951,19 @@ button.threadpick:focus-visible {
 
 /* --- answers: prose with true margin notes --- */
 .answer { margin-block-end: 2.4rem; }
+/* The original question, set apart from the reasoning that follows it (George, 2026-09-29).
+   Same label idiom as Hit when / Evidence / WDS: a small caps grey tag on its own line,
+   then the content — here the quoted question itself, in the accent hue, so a reader can
+   place it as "what was asked" at a glance rather than reading it as more explanation. */
+.asked {
+  margin: 0 0 1.3rem;
+  padding: .7rem .9rem;
+  background: var(--panel);
+  border-left: 2px solid var(--rule);
+  border-radius: 0 4px 4px 0;
+}
+.askq { font-style: italic; color: var(--ink-2); }
+.sec .asked { border-left-color: color-mix(in srgb, var(--h) 45%, var(--rule)); }
 .ahead {
   display: flex;
   flex-wrap: wrap;
