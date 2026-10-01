@@ -12,7 +12,8 @@ land in that project's Claude directory, so every session keeps its own history:
 Writes, under REG_DIR:
   rN.html       this round, kept forever, with prev / next / latest / index links
   current.html  the same page, plus a watcher that announces a newer round
-  latest.js     `window.__latestRound = N; window.__latestTldr = [...]` — what the watcher polls
+  latest.js     `window.__latestRound`, `__latestTldr`, and `__roundsTldr` (every round's TL;DR
+                seen so far, keyed by round number as a string) — what the watcher polls
   index.html    every round, newest first, with its TL;DR headline
 
 The body comes from render-artifact.py (the shared renderer, unchanged). The watcher polls by
@@ -30,6 +31,19 @@ one case this does NOT handle is a deliberate "not now, and stop asking"; add a 
 that turns out to be wanted. Older rounds (`rN.html`, not `current.html`) keep the quieter inline
 "newer round available" badge — reloading someone off a historical round they opened on purpose is
 the wrong default, so that page only points at `current.html` rather than jumping there for them.
+
+**The dialog updates itself in place (2026-09-30).** George: "it should update itself if the modal
+is up and new content arrives behind it, ideally the tl;dr on the modal appends the next rounds
+behind it. so if the modal is opened on r10 and there are two more rounds before i get to it, then
+modal will be updated with the tl;dr from round 10,11,12. when i click on reload it'll go to the
+current one." The reload-goes-to-current part needed no code: reloading `current.html` always
+fetches whatever is newest at that moment, never what was newest when the dialog first opened. The
+accumulation part did: `latest.js` now keeps `__roundsTldr`, every round's TL;DR keyed by round
+number, grown by one entry per publish rather than rebuilt from scratch (each publish reads the
+previous `latest.js` back out before adding its own round, so this stays O(1) regardless of how
+long a session runs). The open dialog tracks the highest round it has shown and, each poll, appends
+one labeled block per round between that and the new latest — never replaces, never reopens a
+dialog the user already declined.
 """
 import html
 import json
@@ -66,8 +80,12 @@ NAV_CSS = """
 dialog.newround{max-width:26rem;width:calc(100% - 2rem);border:1px solid var(--rule);border-radius:10px;
  padding:1.1rem 1.3rem 1.3rem;background:var(--paper);color:var(--ink);box-shadow:0 12px 40px var(--shadow)}
 dialog.newround::backdrop{background:rgba(0,0,0,.6)}
-dialog.newround .nr-head{margin:0 0 .6rem;font:600 1.05rem/1.3 var(--display),Georgia,serif}
-dialog.newround .nr-tldr{margin:0 0 1.1rem;padding-left:1.1rem;font-size:.92rem;line-height:1.5;color:var(--ink-2)}
+dialog.newround .nr-head{margin:0 0 .7rem;font:600 1.05rem/1.3 var(--display),Georgia,serif}
+dialog.newround .nr-body{max-height:min(60vh,34rem);overflow-y:auto;margin:0 0 1.1rem}
+dialog.newround .nr-round+.nr-round{margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--rule-2)}
+dialog.newround .nr-roundlabel{margin:0 0 .5rem;font:600 .66rem/1 "IBM Plex Mono",ui-monospace,monospace;
+ letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+dialog.newround .nr-tldr{margin:0;padding-left:1.1rem;font-size:.92rem;line-height:1.5;color:var(--ink-2)}
 dialog.newround .nr-tldr li+li{margin-top:2rem}
 dialog.newround button{font:600 .82rem/1 "IBM Plex Mono",ui-monospace,monospace;background:var(--accent);
  color:var(--paper);border:0;border-radius:6px;padding:.6rem 1.05rem;cursor:pointer}
@@ -102,6 +120,28 @@ def tldr_bullets(draft: Path) -> list[str]:
     return [ln.strip()[2:].strip() for ln in m.group(1).splitlines() if ln.strip().startswith("- ")]
 
 
+def write_latest_js(n: int, tldr: list[str]) -> None:
+    """Grows `__roundsTldr` by one entry per publish rather than rebuilding it — reads the
+    prior file back out, adds this round, writes it again. A session can run for hundreds of
+    rounds; re-deriving every earlier round's TL;DR from its draft on every single publish
+    would be wasted work for data that never changes once a round exists."""
+    f = REG_DIR / "latest.js"
+    rounds: dict[str, list[str]] = {}
+    if f.exists():
+        m = re.search(r"window\.__roundsTldr\s*=\s*(\{.*?\});", f.read_text(), re.S)
+        if m:
+            try:
+                rounds = json.loads(m.group(1))
+            except json.JSONDecodeError:
+                rounds = {}
+    rounds[str(n)] = tldr
+    f.write_text(
+        f"window.__latestRound = {n};\n"
+        f"window.__latestTldr = {json.dumps(tldr)};\n"
+        f"window.__roundsTldr = {json.dumps(rounds)};\n"
+    )
+
+
 def stamp(n: int) -> str:
     """When round n was first published, local time; recorded once so a later re-stitch
     of the page (for its next link) does not move it."""
@@ -131,37 +171,53 @@ def nav(n: int, rounds: list[int], live: bool) -> str:
 WATCH_JS = """
 <script>
 (function(){
-  var mine = %d, live = %s, shown = false;
+  var mine = %d, live = %s, declined = false, shown = mine, dlg = null;
   function esc(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
-  function announce(n, tldr){
+  function roundBlock(r){
+    var rounds = window.__roundsTldr || {};
+    var tldr = rounds[String(r)];
+    var items = (tldr && tldr.length) ? tldr.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('')
+      : '<li>(no TL;DR recorded for r' + r + ')</li>';
+    return '<div class="nr-round"><p class="nr-roundlabel">r' + r + '</p>' +
+      '<ul class="nr-tldr">' + items + '</ul></div>';
+  }
+  function updateDialog(n){
     // The badge is the durable signal, unhidden the moment a newer round is seen — not only
     // after the dialog is declined — so it is there even if the dialog never gets a chance
-    // to be read. Idempotent: safe to run every poll while `shown` guards the dialog itself.
+    // to be read. Idempotent: safe to run every poll.
     var badge = document.getElementById('stale');
     if (badge) { badge.hidden = false; badge.style.cursor = 'pointer'; badge.onclick = function(){ location.reload(); }; }
-    if (shown) return;
-    var dlg = document.createElement('dialog');
-    if (typeof dlg.showModal !== 'function') { location.reload(); return; }  // no <dialog>: old fallback
-    shown = true;
-    dlg.className = 'newround';
-    var items = (tldr && tldr.length) ? tldr.map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('')
-      : '<li>(round r' + n + ' has no TL;DR)</li>';
-    dlg.innerHTML =
-      '<form method="dialog">' +
-        '<p class="nr-head">New content available — r' + n + '</p>' +
-        '<ul class="nr-tldr">' + items + '</ul>' +
-        '<button value="load" autofocus>Load it</button>' +
-      '</form>';
-    document.body.appendChild(dlg);
-    dlg.addEventListener('close', function(){
-      if (dlg.returnValue === 'load') { location.reload(); return; }
-      // Escape: dismiss for good this pageview. `shown` stays true on purpose — the badge
-      // above (already visible) is now the only signal, so the dialog does not reappear on
-      // the next poll (George, 2026-09-29: "if i hit escape ... it comes back in a few
-      // seconds" — that was `shown = false` here re-arming it every cycle).
-      dlg.remove();
-    });
-    dlg.showModal();
+    // Escape: dismiss for good this pageview. The badge above (already visible) is now the
+    // only signal; further rounds landing do not reopen a dialog the user already declined
+    // (George, 2026-09-29: "if i hit escape ... it comes back in a few seconds" — that was
+    // an earlier version re-arming itself on every poll after a decline).
+    if (declined || n <= shown) return;
+    if (!dlg) {
+      dlg = document.createElement('dialog');
+      if (typeof dlg.showModal !== 'function') { location.reload(); return; }  // no <dialog>: old fallback
+      dlg.className = 'newround';
+      dlg.innerHTML =
+        '<form method="dialog">' +
+          '<p class="nr-head"></p>' +
+          '<div class="nr-body"></div>' +
+          '<button value="load" autofocus>Load it</button>' +
+        '</form>';
+      document.body.appendChild(dlg);
+      dlg.addEventListener('close', function(){
+        if (dlg.returnValue === 'load') { location.reload(); return; }
+        declined = true;
+        dlg.remove();
+      });
+    }
+    // Appends one block per round between what has already been shown and the new latest —
+    // George, 2026-09-30: "if the modal is opened on r10 and there are two more rounds
+    // before i get to it, then modal will be updated with the tl;dr from round 10,11,12."
+    // Never replaces earlier rounds' blocks, so re-reading what was already seen still works.
+    var body = dlg.querySelector('.nr-body');
+    for (var r = shown + 1; r <= n; r++) body.insertAdjacentHTML('beforeend', roundBlock(r));
+    shown = n;
+    dlg.querySelector('.nr-head').textContent = 'New content available — r' + n;
+    if (!dlg.open) dlg.showModal();  // already-open dialogs just take the new content in place
   }
   function poll(){
     var s = document.createElement('script');
@@ -170,7 +226,7 @@ WATCH_JS = """
       s.remove();
       var n = window.__latestRound;
       if (typeof n === 'number' && n > mine) {
-        if (live) { announce(n, window.__latestTldr); return; }
+        if (live) { updateDialog(n); return; }
         var el = document.getElementById('stale'); if (el) el.hidden = false;
       }
     };
@@ -226,9 +282,7 @@ def main() -> None:
     latest = max(rounds)
     if n == latest:
         (REG_DIR / "current.html").write_text(page(body, n, rounds, live=True))
-        (REG_DIR / "latest.js").write_text(
-            f"window.__latestRound = {n};\nwindow.__latestTldr = {json.dumps(tldr_bullets(draft))};\n"
-        )
+        write_latest_js(n, tldr_bullets(draft))
     rows = []
     for r in sorted(rounds, reverse=True):
         d = REG_DIR / f"r{r}.draft.md"
