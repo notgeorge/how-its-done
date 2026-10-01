@@ -88,19 +88,6 @@ was enforcing, just without the tables.
   right now. Isolate the change into a separate `git worktree add <path> -b <branch> origin/main`,
   apply/commit/push there, then verify the primary thread's original checkout is untouched
   (`git status --short`) before and after.
-- **Isolating a change is not exemption from the target repo's own PR process.** `git worktree add`
-  (the isolation method just above) inherits the repo's local git config and hooks; a bare
-  `gh repo clone` does not — no `core.hooksPath`, no sign-off stamping, none of it. And either way,
-  opening a PR in a tap-org repo still means running that repo's own PR-creation skill first
-  (`open-a-pr`, in `tap` and its plugin repos: claim the issue, sync derived artifacts *after* the
-  last change, run the full test lane, prefer `promote-to-main.sh` over a hand-rolled `gh pr create`)
-  — never skip straight to `gh pr create` with manual flags just because the work happens outside
-  the shared worktree. One real instance of this role did exactly that — `gh repo clone --depth 1`
-  into scratchpad, then a hand-rolled `gh pr create` with manual flags to route around a
-  shallow-clone push quirk — and the PR came back red on `dco`, `pr-title`, `rids`, and the guard
-  suite's fragment-drift/unaccounted-requirements checks. `open-a-pr`'s own "Why this exists" section
-  already documents the identical failure mode from a prior incident on the same repo; the tooling
-  to prevent it existed and simply wasn't reached for.
 - **Proactively message the primary thread about anything you touch** that could land on or affect
   it — don't wait to be asked, and don't let it find out cold. Ask it to do the same back. This is a
   standing practice, not a one-off — one real instance of this role was told: "keep your primary
