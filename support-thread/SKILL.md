@@ -88,6 +88,17 @@ was enforcing, just without the tables.
   right now. Isolate the change into a separate `git worktree add <path> -b <branch> origin/main`,
   apply/commit/push there, then verify the primary thread's original checkout is untouched
   (`git status --short`) before and after.
+- **Isolating a change is not exemption from the target repo's own PR-opening process.**
+  `git worktree add` inherits the repo's local git config and hooks; a plain, separate clone does
+  not — no sign-off hook, no local conventions, nothing. And regardless of which one you used,
+  opening a PR still means running whatever process that repo has for it (claiming the work,
+  regenerating anything derived from the change, running its real check suite) before a hand-rolled
+  PR-creation command — never skip straight to the bare command just because the work happened
+  outside the primary checkout. One real instance of this role did exactly that: isolated into a
+  plain clone instead of a worktree, skipped the repo's own PR checklist, and opened a PR that came
+  back red on four separate checks — commit sign-off, a missing session tag, two kinds of stale
+  generated metadata — all traceable to that one shortcut. The checklist existed specifically to
+  catch this and simply wasn't reached for.
 - **Proactively message the primary thread about anything you touch** that could land on or affect
   it — don't wait to be asked, and don't let it find out cold. Ask it to do the same back. This is a
   standing practice, not a one-off — one real instance of this role was told: "keep your primary
