@@ -22,6 +22,7 @@ complaints and rulings behind each rule — separate from the rules themselves, 
 | `publish-register.py` | Writes the per-round local pages and the live `current.html`. |
 | `hooks/response-format-reminder.sh` | A `UserPromptSubmit` hook that points every turn at `SKILL.md`. |
 | `support-thread/SKILL.md` | A companion skill for running a read-only Q&A session alongside a primary one, in plain prose instead of the full register. |
+| `push-to-buildbox/SKILL.md` | A companion skill for handing a session's work to a fresh session on another machine: a standard brief, a decisions log, a manifest of exact pointers, one checked archive and a prompt to paste, and a read-back before the receiver starts. `push-to-buildbox/handoff.py` packs and checks. |
 | `docs/decisions.md` | The provenance: the quotes and rulings each rule in `SKILL.md` came out of. |
 
 Everything is Python 3, standard library only — no `pip install` required.
@@ -56,6 +57,8 @@ Everything is Python 3, standard library only — no `pip install` required.
 
 4. Optionally install `support-thread/SKILL.md` the same way, as `~/.claude/skills/support-thread`,
    if you'll ever want a secondary, read-only Q&A session tracking a primary one.
+5. Optionally install `push-to-buildbox/` the same way, as `~/.claude/skills/push-to-buildbox`, if
+   you hand work from one machine's session to another's.
 
 That's the whole install. The first response after that should follow the contract — Targets (if
 one is stated), Threads, Work done, Open questions, Actions, Background, TL;DR — and publish a

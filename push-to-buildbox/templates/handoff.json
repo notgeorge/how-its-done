@@ -1,0 +1,24 @@
+{
+  "title": "Short name of the work being handed off",
+  "prepared_by": "session name or person",
+  "goal": "Why the work exists, in a sentence or two.",
+  "end_state": "What is true when it is finished.",
+  "next_action": {"id": "N1", "text": "The one first step, executable and finishable."},
+  "do_not": [
+    {"id": "DN1", "text": "A thing not to do, with the reason in a clause."}
+  ],
+  "decisions": [
+    {"id": "D1", "title": "A settled decision, matching the heading in DECISIONS.md."}
+  ],
+  "repos": [
+    {"name": "example", "path": "/absolute/or/relative/path/to/work/tree", "role": "what this repository is to the work"}
+  ],
+  "issues": [
+    {"ref": "owner/repo#123", "title": "Issue title", "url": "https://example.invalid/owner/repo/issues/123"}
+  ],
+  "required_secret_names": [],
+  "init_command": "",
+  "verify_commands": [],
+  "ask": "Who decides, and how to reach them.",
+  "stop_when": "The conditions under which the receiver stops and waits."
+}
