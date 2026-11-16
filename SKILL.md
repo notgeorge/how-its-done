@@ -24,12 +24,56 @@ question costs one round.
 
 ## Render order
 
-Prose answer, then **Targets → Threads → Work done → Open questions → Actions → Background**, in
+Prose answer, then **Targets → Threads → Answers → Figures → Work done → Open questions → Actions → Background**, in
 that order every time. **Targets renders first and every round while any Target is active — not
 only on the round it was stated, not only when the reply happens to be about it** (a Target has been
 seen to drop silently the round after intake, precisely the failure the table exists to catch).
 Background sits last, under Actions: it is status, not something the user acts on, so it must never
 push their to-do list further down the screen.
+
+## The opening is a BLUF; everything else goes in a section
+
+The prose above the first heading of a draft is the bottom line, in a few sentences: at most
+60 words (`PREAMBLE_CEILING`; `check_preamble` fails a longer one). The page shows it as its
+lead and the terminal reply repeats it. It is not where the answer goes.
+
+**All the substance of a response goes in a rendered section, never only in the terminal.**
+Reasoning and explanation go in `## Answers`, which is prose with bullets and sidenotes.
+Decisions, work, questions and asks go in their tables. A picture goes in `## Figures`. The
+register page is the durable record of a response, and anything that exists only in the
+terminal text is easy to miss and gone the next day (the user, file-system r10: "all the
+context goes in the register").
+
+This rule is here because the page renderer used to skip the opening prose entirely while
+this file said the page carried it. A session wrote its whole answer there for ten rounds,
+told the user the page held it, and it did not. After publishing, a `grep` of the page for a
+phrase from each main point is the check that it landed.
+
+## Figures — drawn diagrams
+
+When a picture explains a structure better than words (a layout on disk, how nodes join, a
+flow), draw it. A terminal can only show plain characters; the page can show a real diagram.
+
+Draft source, in a `## Figures` section placed after Answers:
+
+    ## Figures
+
+    F1 · What the picture shows, in 3 to 20 words
+    ```svg
+    <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg"> … </svg>
+    ```
+
+- One caption line per figure, `F<number> · caption`, then one fenced `svg` block. Identifiers
+  are `F` plus a number, never reused, and an Answer refers to a figure by it ("see F1").
+- The SVG needs a `viewBox` so it scales to the page. Style it with the page's classes and no
+  colours of its own, so it follows light and dark: `f-box` (a plain box), `f-key` (the box
+  the figure is about), `f-line` (a connector), `f-arrow` (an arrowhead), `f-text`,
+  `f-strong`, `f-muted` and `f-accent` (text).
+- Nothing that can run or fetch: no script, style, link, embedded document, image or event
+  handler (`SVG_FORBIDDEN`). `check_figures` fails a figure that has one, and the page shows
+  such a figure as its source text instead of drawing it.
+- The terminal block lists each figure by identifier and caption under "Figures (on the
+  page)". The picture itself is page-only.
 
 ## Targets — what the session is aiming at
 
@@ -355,8 +399,8 @@ blank lines, with a `> ` line directly under a paragraph for that paragraph's si
 `> ` line is a sidenote. The old instruction "the explanation as prose directly below that table"
 still holds — this is its rendered form, not a replacement.
 
-Order with the rest of the register: **Targets → Threads → Answers → Work done → Open questions →
-Actions → Background.** Targets and Threads come first because they frame what was asked about;
+Order with the rest of the register: **Targets → Threads → Answers → Figures → Work done → Open
+questions → Actions → Background.** Targets and Threads come first because they frame what was asked about;
 work and actions are what happened around them.
 
 ## The rendered layout
@@ -471,7 +515,7 @@ from the renderer's theme tokens, so it follows light and dark with the rest of 
 
 | Surface | Carries |
 | --- | --- |
-| The page | Everything. The prose answer, then Targets → Threads → Answers → Work done → Open questions → Actions → Background → TL;DR |
+| The page | Everything. The opening BLUF as the lead, then Targets → Threads → Answers → Figures → Work done → Open questions → Actions → Background → TL;DR |
 | The reply in the terminal | The prose BLUF; then the `--terminal` output VERBATIM in a code fence: `<session> · r<N>`, Targets, TL;DR, and an INDEX of Open questions and Actions (identifier, glyphs, the 4-8 word title); then one line with the live page's path |
 
 The index is a pointer, not a summary. Its job is that the user can type `A48` back without

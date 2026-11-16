@@ -34,7 +34,7 @@ from pathlib import Path
 # --- the contract, as data -------------------------------------------------
 
 #: Section heading -> its position in the required render order.
-ORDER = ["Targets", "Threads", "Answers", "Work done", "Open questions", "Actions", "Background"]
+ORDER = ["Targets", "Threads", "Answers", "Figures", "Work done", "Open questions", "Actions", "Background"]
 
 #: Per-cell word bands: (column index or name, low, high). Below low = compressed
 #: past the point George can track it next week (r18). Above high = the wall of text
@@ -168,6 +168,110 @@ def find(tables: list[Table], name: str) -> Table | None:
         if t.heading.lower() == name.lower():
             return t
     return None
+
+
+# --- preamble and figures (file-system r11-r12, George 2026-11-16) -----------
+#
+# Two things the page could not carry. The opening prose of a draft (everything above the
+# first heading) was skipped by the page renderer while SKILL.md said the page carried it,
+# so a session wrote its whole answer there for ten rounds and none of it reached the
+# register. And a diagram could only be plain characters, because every renderer escapes
+# markup. The fix is in three places that share THIS parser: the checker caps the opening
+# prose at a summary, the page shows that summary as its lead, and `## Figures` holds drawn
+# diagrams.
+
+#: The opening prose is a BLUF, not the answer. Past this it is substance, and substance
+#: belongs in a section that every surface renders.
+PREAMBLE_CEILING = 60
+
+FIGURE_ID = re.compile(r"^(F\d+)\s+·\s+(.+)$")
+#: A figure is drawn by the session and shown on a local page, but the draft can quote
+#: text from anywhere, so the SVG is held to a shape that cannot run or fetch anything:
+#: no script, no styles, no embedded documents, no links, no event handlers.
+SVG_FORBIDDEN = re.compile(
+    r"<\s*(script|style|foreignObject|iframe|object|embed|image|use|a|animate\w*|set)\b"
+    r"|\bon[a-z]+\s*=|javascript:|\bhref\s*=|<!|<\?",
+    re.I,
+)
+
+
+def preamble(md: str) -> str:
+    """The prose above the first heading: the BLUF."""
+    out: list[str] = []
+    for line in md.splitlines():
+        if line.startswith("#"):
+            break
+        out.append(line)
+    return "\n".join(out).strip()
+
+
+def figure_blocks(md: str) -> tuple[list[tuple[str, str, str]], list[str]]:
+    """Each figure in `## Figures` as (id, caption, svg), plus the lines that are neither.
+
+    The draft form is a caption line `F1 · what the picture shows`, then a fenced block
+    opened with three backticks and `svg`. A caption line, not a `###` heading: `parse()`
+    reads any `#` line as a section heading, and a sub-heading would be reported as a
+    section with no renderer.
+    """
+    figures: list[tuple[str, str, str]] = []
+    stray: list[str] = []
+    lines = section_body(md, "Figures").splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        m = FIGURE_ID.match(line)
+        if m:
+            j = i + 1
+            while j < len(lines) and not lines[j].strip():
+                j += 1
+            if j < len(lines) and lines[j].strip() == "```svg":
+                k = j + 1
+                body: list[str] = []
+                while k < len(lines) and lines[k].strip() != "```":
+                    body.append(lines[k])
+                    k += 1
+                figures.append((m.group(1), m.group(2).strip(), "\n".join(body).strip()))
+                i = k + 1
+                continue
+        if line:
+            stray.append(line)
+        i += 1
+    return figures, stray
+
+
+def check_preamble(md: str, rep: Report) -> None:
+    n = words(preamble(md))
+    if n > PREAMBLE_CEILING:
+        rep.fail(
+            "opening prose",
+            f"{n} words, ceiling is {PREAMBLE_CEILING} — the opening is a BLUF; put the substance "
+            "in a section (Answers carries prose) so the register page holds it",
+        )
+
+
+def check_figures(md: str, headings: list[str], rep: Report) -> None:
+    if "Figures" not in headings:
+        return
+    figures, stray = figure_blocks(md)
+    if not figures:
+        rep.fail("Figures", "section present with no figure — a caption line `F1 · …` then a ```svg fence")
+    for line in stray:
+        rep.fail("Figures", f"a line that is neither a caption nor inside an svg fence: {line[:50]!r}")
+    seen: set[str] = set()
+    for fid, caption, svg in figures:
+        if fid in seen:
+            rep.fail(f"Figures/{fid}", "identifier used twice")
+        seen.add(fid)
+        n = words(caption)
+        if not 3 <= n <= 20:
+            rep.fail(f"Figures/{fid}", f"caption is {n} words — say what the picture shows in 3 to 20")
+        if not (svg.startswith("<svg") and svg.endswith("</svg>")):
+            rep.fail(f"Figures/{fid}", "the fence must hold exactly one <svg>…</svg> element")
+        if "viewBox" not in svg:
+            rep.fail(f"Figures/{fid}", "no viewBox — the figure cannot scale to the page without one")
+        bad = SVG_FORBIDDEN.search(svg)
+        if bad:
+            rep.fail(f"Figures/{fid}", f"not allowed in a figure: {bad.group(0)!r} (no script, style, links, embeds or handlers)")
 
 
 # --- checks ----------------------------------------------------------------
@@ -446,6 +550,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     check_order(headings, rep)
+    check_preamble(md, rep)
+    check_figures(md, headings, rep)
     check_no_bold_anywhere(tables, rep)
     check_tldr(md, tables, rep)
     check_targets(find(tables, "Targets"), args.register, rep)

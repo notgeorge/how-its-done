@@ -277,6 +277,9 @@ def render(md: str) -> str:
         if key == "work done" and summary:
             text += BREAK + BLANK.rstrip("\n") + BREAK + summary
         blocks.append(text)
+    fg = figures_block(md)
+    if fg:
+        blocks.append(fg)
     bg = background_block(md)
     if bg:
         blocks.append(bg)
@@ -288,11 +291,22 @@ def render(md: str) -> str:
     # "answers" renders through its own path, not the SHAPE walk — omitting it here made
     # the warning fire on a correct draft (highbar, r85). A checker that cries wolf is one
     # its reader learns to skim, which is the failure this warning exists to prevent.
-    known = set(SHAPE) | {"answers", "background", "tl;dr"}
+    known = set(SHAPE) | {"answers", "figures", "background", "tl;dr"}
     for t in _cr.parse(md)[1]:
         if t.heading.lower() not in known and t.heading != "(preamble)":
             print(f"[render-register] WARNING: no renderer for section {t.heading!r}", file=sys.stderr)
     return (BREAK + BLANK + BLANK).join(blocks)
+
+
+def figures_block(md: str) -> str:
+    """Figures are drawn, and a terminal cannot draw: name each one and say where it is."""
+    figures, _stray = _cr.figure_blocks(md)
+    if not figures:
+        return ""
+    out = [heading("Figures")]
+    for fid, caption, _svg in figures:
+        out.append(f"{fid}{NBSP * 3}{caption}{NBSP * 3}(drawn on the page)")
+    return BREAK.join(out).rstrip()
 
 
 def background_block(md: str, width: int = 96) -> str:

@@ -59,7 +59,7 @@ _rr = _load("_rr", "render-register.py")       # answer_blocks, split_tail, roun
 SEGMENT = _cr.SEGMENT
 
 #: Contract order (SKILL.md § Render order), with TL;DR last (r83).
-ORDER = ["Targets", "Threads", "Answers", "Work done", "Open questions", "Actions", "Background", "TL;DR"]
+ORDER = ["Targets", "Threads", "Answers", "Figures", "Work done", "Open questions", "Actions", "Background", "TL;DR"]
 
 #: The one column label that survives into the render (r58). It rides the section rule,
 #: not a header row, exactly as it does in the terminal form.
@@ -576,6 +576,38 @@ def tldr_html(md: str) -> str:
     return section_open("TL;DR") + f'<ul class="tldr">{items}</ul></section>'
 
 
+def lead_html(md: str) -> str:
+    """The draft's opening prose, as the page's lead.
+
+    It was skipped entirely until file-system r11: SKILL.md said the page carries the prose
+    answer, the walk below said `h != "(preamble)"`, and ten rounds of substance written
+    there never reached the register. The checker now caps it at a BLUF
+    (`PREAMBLE_CEILING`), and the page shows what is left."""
+    paras = [p.strip() for p in re.split(r"\n\s*\n", _cr.preamble(md)) if p.strip()]
+    if not paras:
+        return ""
+    return '<section class="lead">' + "".join(f"<p>{inline(' '.join(p.split()))}</p>" for p in paras) + "</section>"
+
+
+def figures_html(md: str) -> str:
+    """Drawn diagrams. The SVG goes to the page as written, which is the one place a draft's
+    markup is not escaped, so it is only emitted when the checker's own rule
+    (`SVG_FORBIDDEN`) finds nothing in it; a figure that fails is shown as its source."""
+    figures, _stray = _cr.figure_blocks(md)
+    if not figures:
+        return ""
+    out = [section_open("Figures")]
+    for fid, caption, svg in figures:
+        ok = svg.startswith("<svg") and svg.endswith("</svg>") and not _cr.SVG_FORBIDDEN.search(svg)
+        body = svg if ok else f'<pre class="passthrough">{esc(svg)}</pre>'
+        out.append(
+            f'<figure class="fig" id="{esc(fid)}"><div class="figbody">{body}</div>'
+            f'<figcaption><span class="rid">{esc(fid)}</span>{inline(caption)}</figcaption></figure>'
+        )
+    out.append("</section>")
+    return "".join(out)
+
+
 def passthrough_html(name: str, body: str) -> str:
     """A section with no renderer is shown, not dropped. `## Background` went missing for a
     whole evening because an allowlist skipped what it did not recognise; the text renderer
@@ -1023,6 +1055,25 @@ ul.tldr { margin: 0; padding-left: 1.2rem; max-width: 72ch; color: var(--ink-2);
 ul.tldr li { margin-bottom: .95rem; }
 ul.tldr li::marker { color: var(--faint); }
 
+/* --- lead and figures (file-system r12) ---
+   The lead is the draft's BLUF. Figures are drawn SVG: the classes below are the whole
+   palette a figure should use, so it follows light and dark with the page. */
+.lead { max-width: 72ch; margin-block-end: 2rem; font-size: 1.02rem; color: var(--ink); }
+.lead p { margin: 0 0 .7rem; }
+figure.fig { margin: 0 0 2rem; }
+.figbody { background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; padding: 1rem; overflow-x: auto; }
+.figbody svg { display: block; max-width: 100%; height: auto; margin-inline: auto; font-family: var(--mono); }
+figure.fig figcaption { margin-top: .5rem; color: var(--muted); font-size: .86rem; }
+figure.fig figcaption .rid { margin-right: .7em; }
+.figbody .f-box    { fill: var(--paper); stroke: var(--rule); stroke-width: 1.2; }
+.figbody .f-key    { fill: color-mix(in srgb, var(--h) 12%, var(--paper)); stroke: var(--h); stroke-width: 1.4; }
+.figbody .f-line   { stroke: var(--muted); stroke-width: 1.3; fill: none; }
+.figbody .f-arrow  { fill: var(--muted); stroke: none; }
+.figbody .f-text   { fill: var(--ink); font-size: 13px; }
+.figbody .f-strong { fill: var(--ink); font-size: 13px; font-weight: 600; }
+.figbody .f-muted  { fill: var(--muted); font-size: 12px; }
+.figbody .f-accent { fill: var(--h); font-size: 12px; }
+
 /* --- passthrough --- */
 .passnote { font-size: .8rem; color: var(--warn-ink); margin: 0 0 .6rem; }
 pre.passthrough {
@@ -1299,6 +1350,9 @@ def render_html(md: str, draft: Path, session: str = "") -> str:
             if _rr.answer_blocks(md):
                 body.append(answers_html(md))
             continue
+        if key == "figures":
+            body.append(figures_html(md))
+            continue
         if key == "background":
             body.append(background_html(md))
             continue
@@ -1336,6 +1390,7 @@ def render_html(md: str, draft: Path, session: str = "") -> str:
             f"<h1>{esc(title)}</h1>",
             f'<p class="dateline">{dateline(md, draft, tables)}</p>',
             "</header>",
+            lead_html(md),
             *[b for b in body if b],
             "</div>",
             f"<script>{FILTER_JS}</script>",
@@ -1398,6 +1453,13 @@ def render_terminal(md: str, draft: Path, session: str = "", width: int = 92) ->
             out.append(f"  · {lines[0]}")
             out += [f"    {ln}" for ln in lines[1:]]
             out.append("")
+
+    figures, _stray = _cr.figure_blocks(md)
+    if figures:
+        out.append("Figures (on the page)")
+        for fid, caption, _svg in figures:
+            out.append(f"  {fid}  {_plain(caption)}")
+        out.append("")
 
     for name in ("Open questions", "Actions"):
         t = _cr.find(tables, name)
