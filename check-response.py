@@ -46,6 +46,7 @@ BANDS = {
     "threads.description": (8, 70),
     "questions.question": (15, 110),
     "questions.matters": (10, 90),
+    "questions.rec_why": (3, 30),
     "answers.answer": (8, 45),
     "targets.hitwhen": (4, 30),
 }
@@ -373,6 +374,41 @@ def check_targets(t: Table | None, register: Path | None, rep: Report) -> None:
             check_band(rep, f"Targets/{r[0]} hit-when", "targets.hitwhen", r[3])
 
 
+def register_open_ids(register: Path) -> list[str] | None:
+    """Q#/A# identifiers the register lists as open, from its `## Open` and `## Actions` sections."""
+    try:
+        text = register.read_text()
+    except OSError:
+        return None
+    ids: list[str] = []
+    for name in ("## Open", "## Actions"):
+        for block in text.split(name)[1:]:
+            body = block.split("\n## ", 1)[0]
+            for ln in body.splitlines():
+                m = re.match(r"\|\s*([QA]\d+)\b", ln.strip())
+                if m and m.group(1) not in ids:
+                    ids.append(m.group(1))
+    return ids
+
+
+def check_carry_forward(tables: list[Table], register: Path | None, rep: Report) -> None:
+    """Every open question and action renders every round, trivial turns included (r58, George:
+    "you should carry forward the questions so they're always there")."""
+    open_ids = register_open_ids(register) if register else None
+    if not open_ids:
+        return
+    shown: set[str] = set()
+    for name in ("Open questions", "Actions"):
+        t = find(tables, name)
+        for r in t.rows if t else []:
+            m = re.match(r"([QA]\d+)\b", r[0].strip()) if r else None
+            if m:
+                shown.add(m.group(1))
+    missing = [i for i in open_ids if i not in shown]
+    if missing:
+        rep.fail("Carry-forward", f"open in the register but not rendered: {', '.join(missing)} (r58)")
+
+
 def register_has_active_target(register: Path) -> bool | None:
     try:
         text = register.read_text()
@@ -461,8 +497,8 @@ def check_questions(t: Table | None, rep: Report) -> None:
     if not t.rows or all(PLACEHOLDER.match(c) for r in t.rows for c in r):
         rep.fail("Open questions", "empty or placeholder table — omit the section entirely when none")
         return
-    if len(t.header) != 5:
-        rep.fail("Open questions", f"{len(t.header)} columns, contract is 5 (ID, Thread, ?, ??, Why it matters)")
+    if len(t.header) != 6:
+        rep.fail("Open questions", f"{len(t.header)} columns, contract is 6 (ID, Thread, ?, ??, Why it matters, Recommendation)")
     for r in t.rows:
         if not QUESTION_ID.match(r[0]):
             rep.fail("Open questions", f"id {r[0]!r} must be a Q with its raised round, e.g. 'Q7 · r14'")
@@ -470,6 +506,32 @@ def check_questions(t: Table | None, rep: Report) -> None:
             check_thread_tag(rep, f"Open questions/{r[0]}", r[1])
             check_band(rep, f"Open questions/{r[0]} question", "questions.question", r[3])
             check_band(rep, f"Open questions/{r[0]} why-it-matters", "questions.matters", r[4])
+        if len(r) >= 6:
+            check_recommendations(rep, f"Open questions/{r[0]}", r[3], r[5])
+
+
+#: A question's Recommendation segment is "<verdict> — <why>": an em dash (or " -- ") between
+#: the short verdict ("yes", "b", "keep the list") and one short sentence saying why.
+REC_SPLIT = re.compile(r"\s+(?:—|--)\s+")
+
+
+def check_recommendations(rep: Report, where: str, question: str, rec: str) -> None:
+    """One recommendation per question or sub-question (George, 2026-11-25): the page shows
+    `Recommendation: <verdict>` with "yes" in the call-out colour and the why beneath it."""
+    qsegs = [x for x in question.split(" ¶ ") if x.strip()] or [question]
+    rsegs = [x for x in rec.split(" ¶ ") if x.strip()]
+    if not rsegs:
+        rep.fail(where, "no recommendation — every question carries one (verdict — why)")
+        return
+    if len(rsegs) != len(qsegs):
+        rep.fail(where, f"{len(rsegs)} recommendation(s) for {len(qsegs)} sub-question(s) — one each, in order, joined by ' ¶ '")
+    for i, seg in enumerate(rsegs):
+        parts = REC_SPLIT.split(seg.strip(), maxsplit=1)
+        if len(parts) != 2 or not parts[0].strip():
+            rep.fail(where, f"recommendation {i + 1} is not '<verdict> — <why>': {seg[:60]!r}")
+            continue
+        check_band(rep, f"{where} recommendation {i + 1} why", "questions.rec_why", parts[1])
+        check_no_bold(rep, f"{where} recommendation {i + 1}", seg)
 
 
 def check_actions(t: Table | None, rep: Report) -> None:
@@ -555,6 +617,7 @@ def main(argv: list[str] | None = None) -> int:
     check_no_bold_anywhere(tables, rep)
     check_tldr(md, tables, rep)
     check_targets(find(tables, "Targets"), args.register, rep)
+    check_carry_forward(tables, args.register, rep)
     check_threads(find(tables, "Threads"), rep)
     for t in tables:
         if t.header and t.header[0].startswith("AW"):

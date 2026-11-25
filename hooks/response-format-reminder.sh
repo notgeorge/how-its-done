@@ -14,6 +14,7 @@ D="$HOME/.claude/skills/response-format"
 RENDER="python3 $D/render-register.py"
 PUBLISH="python3 $D/publish-register.py"
 TERM_OUT="python3 $D/render-artifact.py"
+HISTORY="python3 $D/build-artifact-history.py"
 [[ -f "$SKILL" ]] || exit 0   # no contract installed: say nothing, block nothing
 
 read -r -d '' CONTEXT <<EOF
@@ -27,9 +28,12 @@ The non-negotiables, because they are what a session forgets:
    first, write the draft as markdown (<scratchpad>/draft-rN.md), run
    $RENDER --check --register <register> <draft> until clean, then
    $PUBLISH <draft> (from the session's working directory; writes the per-round
-   LOCAL pages and the live current.html; never a claude.ai Artifact), then put
+   LOCAL pages and the live current.html, which keep the history), then mirror the round
+   WITH its history: $HISTORY <draft> --out <scratchpad>/artifact,
+   and publish <scratchpad>/artifact/register.html with the Artifact tool, root=<scratchpad>/artifact
+   and files=every rounds/... path in files.json, same paths every round so the URL never changes. Then put
    $TERM_OUT <draft> --terminal output VERBATIM in a code fence after a prose BLUF,
-   followed by the live page's path. Hand-typed markdown tables are a contract violation.
+   followed by the Artifact URL and the local current.html path. Hand-typed markdown tables are a contract violation.
 3. Order: Targets (every round while any is active) -> Threads -> Answers -> Work done -> Open
    questions -> Actions -> Background (one row: live waits and when each fires).
 4. A trivial turn (ack, status, one-liner) gets one net-net table of title + description instead.

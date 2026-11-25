@@ -503,6 +503,36 @@ def work_html(t, md: str) -> str:
     return "".join(out)
 
 
+#: A question's Recommendation segment: "<verdict> — <why>" (an em dash, or " -- ").
+_REC_SPLIT = re.compile(r"\s+(?:—|--)\s+")
+
+
+def rec_cell(question: str, rec: str) -> str:
+    """The Open-questions Recommendation column (George, 2026-11-25): for each question or
+    sub-question, `Recommendation: <verdict>` with a "yes" in the call-out colour, and under it
+    one short sentence saying why. Segments line up with the question's ` ¶ ` sub-questions, so
+    each recommendation carries the sub-question's id (Q66a, Q66b ...). A draft without the
+    column renders no cell, so older rounds re-render unchanged."""
+    if not rec:
+        return ""
+    qsegs = segments(question) or [""]
+    subids = []
+    for q in qsegs:
+        m = _SUBID.match(q)
+        subids.append(m.group(1) if m else "")
+    blocks = []
+    for i, seg in enumerate(segments(rec) or [""]):
+        parts = _REC_SPLIT.split(seg, maxsplit=1)
+        verdict, why = (parts[0], parts[1]) if len(parts) == 2 else (seg, "")
+        sid = subids[i] if i < len(subids) and len(qsegs) > 1 else ""
+        cls = "verdict yes" if verdict.strip().lower().startswith("yes") else "verdict"
+        head = (f'<span class="subid">{esc(sid)}</span>' if sid else "") + \
+            f'<span class="reclabel">Recommendation:</span> <span class="{cls}">{inline(verdict.strip())}</span>'
+        blocks.append(f'<div class="recblock"><p class="rechead">{head}</p>'
+                      + (f'<p class="recwhy">{inline(why.strip())}</p>' if why.strip() else "") + "</div>")
+    return f'<td class="body rec qrec" data-label="Recommendation">{"".join(blocks)}</td>'
+
+
 def questions_html(t) -> str:
     out = [section_open("Open questions"), '<div class="tablewrap"><table class="reg questions">']
     for r in sorted(t.rows, key=lambda r: _rr.round_of(cell(r, 0))):
@@ -514,6 +544,7 @@ def questions_html(t) -> str:
             f'<td class="title" data-label="Question">{inline(cell(r, 2))}</td>'
             f'<td class="body" data-label="What I need decided">{body_html(cell(r, 3), subids=True)}</td>'
             f'<td class="body why" data-label="Why it matters">{body_html(cell(r, 4))}</td>'
+            f"{rec_cell(cell(r, 3), cell(r, 5))}"
             f"{round_cell(tail)}"
             "</tr>"
         )
@@ -648,6 +679,7 @@ CSS = """
   --warn-ink:#7a4a08;
   --warn-bg: #f2e6cf;
   --warn-rule:#c99a3d;
+  --yes:     #1d7a3c;   /* call-out for a "yes" recommendation (2026-11-25) */
   --code-bg: #e5eaea;
   --shadow:  rgba(20,40,40,.08);
   /* Section hues: one muted colour per section, chosen to sit together, not to shout. */
@@ -675,6 +707,7 @@ CSS = """
     --warn-ink:#e7bd6d;
     --warn-bg: #2e2515;
     --warn-rule:#8a6a24;
+    --yes:     #7fd59a;
     --code-bg: #232c2e;
     --shadow:  rgba(0,0,0,.4);
     --hue-targets:    #c39abd;
@@ -701,6 +734,7 @@ CSS = """
   --warn-ink:#e7bd6d;
   --warn-bg: #2e2515;
   --warn-rule:#8a6a24;
+  --yes:     #7fd59a;
   --code-bg: #232c2e;
   --shadow:  rgba(0,0,0,.4);
   --hue-targets:    #c39abd;
@@ -923,6 +957,13 @@ table.work .c-body { width: 40%; }
 table.work .c-ev { width: 24%; }
 
 /* Recommendation is opinion. Marked, never fused with Why. */
+td.qrec .recblock { margin: 0 0 .7rem; }
+td.qrec .recblock:last-child { margin-bottom: 0; }
+td.qrec .rechead { margin: 0; }
+td.qrec .reclabel { color: var(--muted); font-size: .84rem; }
+td.qrec .verdict { font-weight: 600; }
+td.qrec .verdict.yes { color: var(--yes); }
+td.qrec .recwhy { margin: .15rem 0 0; color: var(--ink-2); font-size: .88rem; }
 td.rec { border-left: 2px solid var(--rule) !important; padding-left: .9rem; }
 .subid {
   display: inline-block;

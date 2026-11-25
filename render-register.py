@@ -261,6 +261,11 @@ def render(md: str) -> str:
             rid, tail = split_tail(r[0])
             thread = r[1] if len(r) > 1 else ""
             rest = list(r[2:])
+            if key == "open questions" and len(rest) > 3:
+                # The Recommendation column (2026-11-25) is page-first; the fixed-width form
+                # folds it under Why so the grid keeps its two body columns.
+                recs = " ¶ ".join(f"Recommendation: {x.strip()}" for x in rest[3].split(" ¶ ") if x.strip())
+                rest = rest[:2] + [rest[2] + (" ¶ " + recs if recs else "")]
             if not shape["thread"]:
                 rid = rid + thread
                 thread = ""

@@ -19,6 +19,7 @@ complaints and rulings behind each rule — separate from the rules themselves, 
 | `check-response.py` | Validates a drafted response against the contract. Stdlib only. |
 | `render-register.py` | Renders the fixed-width terminal form; owns `--check`. |
 | `render-artifact.py` | Renders the HTML page form (the one actually published each round). |
+| `build-artifact-history.py` | Builds the browser mirror with its history: the newest round as the page, every earlier round under `rounds/`, and the `files` map to publish them with. |
 | `publish-register.py` | Writes the per-round local pages and the live `current.html`. |
 | `hooks/response-format-reminder.sh` | A `UserPromptSubmit` hook that points every turn at `SKILL.md`. |
 | `support-thread/SKILL.md` | A companion skill for running a read-only Q&A session alongside a primary one, in plain prose instead of the full register. |

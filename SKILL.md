@@ -203,9 +203,17 @@ decision they did not need to make.
 | `?` | The question's title, 4-8 words. Plain text — no bold |
 | `??` | The question itself: what you need decided, in full sentences |
 | Why it matters | What it blocks, or what goes wrong if it is decided the other way |
+| Recommendation | Right-most. One recommendation per question or sub-question, in order, joined by ` ¶ ` like the sub-questions: `<verdict> — <why>`, the verdict short (`yes`, `b`, `keep the list`) and the why one short sentence (3–30 words). The page shows `Recommendation: <verdict>`, with a `yes` in the call-out colour, and the why beneath it; the fixed-width form folds it under Why it matters |
 
 The title and the question are separate columns so the titles form a scannable left edge instead
 of being buried at the head of a paragraph.
+
+**Every question carries your recommendation, beside it (added 2026-11-25).** George asked for
+the recommendation per question and sub-question in the right-most column, with `yes` in a
+call-out colour and one short sentence of why underneath, so a decision can be made by scanning
+that column. `check_recommendations` fails a question whose Recommendation count differs from its
+sub-question count, or whose segment is not `<verdict> — <why>`. The recommendation still
+appears in the question text when it helps; the column is the scannable copy.
 
 **Sub-questions get their own lines, lettered.** When one entry asks several things, write each as
 its own line inside the `??` cell — `Q23a …`, `Q23b …` — so the user can answer line by line
@@ -217,6 +225,13 @@ literal pilcrow cannot — `¶` is reserved for the break.
 **Answered questions drop off.** Once the user rules, the row disappears from the next response;
 the ruling is recorded in the register file, not re-displayed. Unanswered questions **carry forward
 unchanged, with their original ID and Raised value**.
+
+**Carried forward EVERY round, no exceptions.** Every open question and every open action renders in
+every response — including a round with nothing new, a round that only answers a thread question,
+and a trivial turn. The user must never scroll back to find what is waiting on them (r58, George:
+"on rounds where there's no new questions you're just pushing the threads and i have to scroll back
+to find the questions in previous entries ... you should carry forward the questions so they're
+always there"). `--check --register` fails a draft that omits any Q#/A# the register lists as open.
 
 ### Actions
 
@@ -485,16 +500,50 @@ pattern.
 because HTML has rows and cells and the width arithmetic above stops being load-bearing. It was
 first published as a hosted-artifact page republished in place. That lost the history, because each
 republish replaced the last round and there was no way to look back. So the pages are LOCAL files,
-one kept per round, plus a live page that follows the newest round. Do not publish the register to
-a third-party hosted-artifact service — the per-round history is the point.
+one kept per round, plus a live page that follows the newest round. The per-round history is the
+point, and the local pages are where it lives.
+
+**The browser mirror, added 2026-11-16.** George asked to see the register in a browser through a
+claude.ai Artifact URL. So every published round is also mirrored to ONE Artifact per session:
+render the page with `render-artifact.py <draft> --html <scratchpad>/register.html` and publish
+that file with the Artifact tool, always from the same path so the URL never changes. The mirror
+does NOT replace the local pages, which still hold the history. That is what keeps this from being
+the earlier mistake again. (Superseded in part 2026-11-25: the mirror now also carries every
+round. See "The mirror carries its history" below; `build-artifact-history.py` replaces the bare
+`--html` render as step 3.) The `--html` page is self-contained (no
+local links, no `latest.js` poll), which is why it is the one to publish rather than `current.html`.
+Give the Artifact URL as the live page, with the local `current.html` path beside it.
+
+**The mirror carries its history, added 2026-11-25.** Republishing the newest round in place
+meant the browser link showed only that round, and George could not see the previous response
+once it was replaced (regscale r29: "replacing the current doc means i can't see the previous
+response"). That was the same loss the local pages were built to fix, back again in the
+browser. So the mirror now publishes every round kept on disk as a supporting page beside the
+newest one. `build-artifact-history.py` writes:
+- `<scratchpad>/artifact/register.html`: the newest round, with a strip at the top linking to
+  the previous round and to all rounds;
+- `rounds/rN.html` for every round, each with previous, next, all rounds and latest links;
+- `rounds/index.html`: every round, newest first, with its TL;DR headline;
+- `files.json`: the map of those files.
+
+Publish `register.html` as the page, with `root` set to the artifact directory and `files`
+listing every `rounds/…` path. Always use the same directory, so the URL never changes. The
+rounds are sent again on every publish, so a renderer fix or a restitched next link reaches the
+old pages too. The local pages remain the source of the history, and the script reads them, so
+`publish-register.py` must run first. A session that already has a mirror at another file path
+passes that Artifact's `url` on its first history publish to keep the link.
 
 **The round, end to end:**
 
     # 1. update the register, write the draft, validate (unchanged)
     python3 ~/.claude/skills/response-format/render-register.py --check --register <register> <draft-rN.md>
-    # 2. publish the pages (run from the session's working directory)
+    # 2. publish the local pages (run from the session's working directory)
     python3 ~/.claude/skills/response-format/publish-register.py <draft-rN.md>
-    # 3. the terminal block
+    # 3. the browser mirror with its history; then publish with the Artifact tool:
+    #    file_path=<scratchpad>/artifact/register.html, root=<scratchpad>/artifact,
+    #    files=[every "rounds/…" path in files.json]  (same paths every round)
+    python3 ~/.claude/skills/response-format/build-artifact-history.py <draft-rN.md> --out <scratchpad>/artifact
+    # 4. the terminal block
     python3 ~/.claude/skills/response-format/render-artifact.py <draft-rN.md> --terminal
 
 `publish-register.py` takes the session name from the working directory's basename (override
@@ -523,7 +572,8 @@ opening the page, and can see at a glance how many decisions are waiting on them
 keeps the index's alignment intact in the terminal.
 
 **A trivial turn** (a watcher firing mid-wait, an ack) does not publish a round. It gets the net-net
-table in *Trivial turns* below. Publish when the register has changed enough to be worth a page.
+table in *Trivial turns* below — still followed by the open questions and actions, carried forward.
+Publish when the register has changed enough to be worth a page.
 
 **The tooling.** Both renderers import ONE parser from `check-response.py`, which is what stops the
 page and the terminal becoming two different truths. `render-register.py` still renders the full
@@ -576,12 +626,15 @@ over time. Few columns, full sentences.
 
 ## Trivial turns
 
-For an acknowledgement, a status check, or a one-line answer, **drop the three tables**. Give a
+For an acknowledgement, a status check, or a one-line answer, **drop the Work done table**. Give a
 single net-net table instead:
 
 | Title | Description |
 | --- | --- |
 | Guard green | Lane settled on 545f15c2; all seats clean |
+
+Then the **Open questions and Actions tables, carried forward in full** whenever the register has any
+open. A trivial turn shortens what you report, never what is waiting on the user (r58).
 
 ## The register file
 
